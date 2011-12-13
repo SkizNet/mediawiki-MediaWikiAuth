@@ -36,7 +36,7 @@ $wgExtensionCredits['other'][] = array(
 	'name' => 'MediaWikiAuth',
 	'author' => '[http://en.wikipedia.com/wiki/User:GreenReaper Laurence "GreenReaper" Parry]',
 	'version' => 0.3,
-	'url' => 'http://www.mediawiki.org/wiki/Extension:MediaWikiAuth',
+	'url' => 'https://www.mediawiki.org/wiki/Extension:MediaWikiAuth',
 	'description' => 'Authenticate against an external MediaWiki instance',
 );
 
