@@ -134,7 +134,6 @@ class MediaWikiAuthPlugin extends AuthPlugin {
 			$results = unserialize( $this->snoopy->results );
 			wfDebugLog( 'MediaWikiAuth', 'Login result:' . print_r( $results, true ) );
 
-			wfLoadExtensionMessages( 'MediaWikiAuth' );
 			$errormsg = wfMsg( 'mwa-error-unknown' );
 			if ( isset( $results['login'] ) ) {
 				$login = $results['login'];
