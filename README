@@ -4,8 +4,8 @@ If you're using this, you should know what to do. If not, talk to GreenReaper!
 
 * Add to LocalSettings.php or equivalent:
 
-$wgMediaWikiAuthAPIURL = 'http://www.wikia.com/api.php';
-$wgMediaWikiAuthPrefsURL = 'http://www.wikia.com/wiki/Special:Preferences?uselang=en';
+$wgMediaWikiAuthAPIURL = 'http://www.example.com/w/api.php';
+$wgMediaWikiAuthPrefsURL = 'http://www.example.com/wiki/Special:Preferences';
 require_once("$IP/extensions/MediaWikiAuth/MediaWikiAuth.php");
 $wgAuth = new MediaWikiAuthPlugin();
 
