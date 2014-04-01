@@ -40,12 +40,13 @@ $wgExtensionCredits['other'][] = array(
 	'path' => __FILE__,
 	'name' => 'MediaWikiAuth',
 	'author' => array( 'Laurence Parry', 'Jack Phoenix', 'Kim Schoonover', 'Ryan Schmidt' ),
-	'version' => '0.7.1',
+	'version' => '0.8.0',
 	'url' => 'https://www.mediawiki.org/wiki/Extension:MediaWikiAuth',
 	'description' => 'Authenticates against and imports logins from an external MediaWiki instance',
 );
 
 # Stuff
+$wgMessagesDirs['MediaWikiAuth'] = __DIR__ . '/i18n';
 $wgExtensionMessagesFiles['MediaWikiAuth'] = dirname( __FILE__ ) . '/MediaWikiAuth.i18n.php';
 
 class MediaWikiAuthPlugin extends AuthPlugin {
