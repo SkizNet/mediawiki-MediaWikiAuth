@@ -350,68 +350,84 @@ class MediaWikiAuthPlugin extends AuthPlugin {
 			$prefs_vars = array(
 				'action' => 'query',
 				'meta' => 'userinfo',
-				'uiprop' => 'options',
+				'uiprop' => 'options|email|realname',
 				'format' => 'php'
 			);
 
 			$this->snoopy->submit( $wgMediaWikiAuthAPIURL, $prefs_vars );
 			$results = unserialize( $this->snoopy->results );
-			if (
-				isset( $results['query'] ) &&
-				isset( $results['query']['userinfo'] ) &&
-				isset( $results['query']['userinfo']['options'] )
-			) {
-				$options = $results['query']['userinfo']['options'];
-				# Don't need some options
-				$ignoredOptions = array(
-					'widgets', 'showAds', 'theme',
-					'disableeditingtips', 'edit-similar',
-					'skinoverwrite', 'htmlemails', 'marketing',
-					'notifyhonorifics', 'notifychallenge',
-					'notifygift', 'notifyfriendsrequest',
-					'blackbirdenroll', 'marketingallowed',
-					'disablecategorysuggest', 'myhomedisableredirect',
-					'avatar', 'widescreeneditingtips',
-					'disablelinksuggest', 'watchlistdigestclear',
-					'hidefollowedpages', 'enotiffollowedpages',
-					'enotiffollowedminoredits', 'myhomedefaultview',
-					'disablecategoryselect'
-				);
-				foreach ( $ignoredOptions as $optName ) {
-					if ( isset( $options[$optName] ) ) {
-						unset( $options[$optName] );
+			if ( isset( $results['query'] ) && isset( $results['query']['userinfo'] ) ) {
+				if ( isset( $results['query']['userinfo']['options'] ) ) {
+					$options = $results['query']['userinfo']['options'];
+					# Don't need some options
+					$ignoredOptions = array(
+						'widgets', 'showAds', 'theme',
+						'disableeditingtips', 'edit-similar',
+						'skinoverwrite', 'htmlemails', 'marketing',
+						'notifyhonorifics', 'notifychallenge',
+						'notifygift', 'notifyfriendsrequest',
+						'blackbirdenroll', 'marketingallowed',
+						'disablecategorysuggest', 'myhomedisableredirect',
+						'avatar', 'widescreeneditingtips',
+						'disablelinksuggest', 'watchlistdigestclear',
+						'hidefollowedpages', 'enotiffollowedpages',
+						'enotiffollowedminoredits', 'myhomedefaultview',
+						'disablecategoryselect'
+					);
+					foreach ( $ignoredOptions as $optName ) {
+						if ( isset( $options[$optName] ) ) {
+							unset( $options[$optName] );
+						}
+					}
+					$user->mOptions = array_merge( $user->mOptions, $options );
+				}
+				// Older wikis might not expose this in the API (1.15+)
+				if ( isset( $results['query']['userinfo']['email'] ) ) {
+					$user->mEmail = $results['query']['userinfo']['email'];
+					wfRunHooks( 'UserSetEmail', array( $this, &$this->mEmail ) );
+					if ( isset( $results['query']['userinfo']['emailauthenticated'] ) ) {
+						$user->confirmEmail();
+					} else {
+						$user->sendConfirmationMail();
 					}
 				}
-				$user->mOptions = array_merge( $user->mOptions, $options );
+
+				// This is 1.18+
+				if ( isset( $results['query']['userinfo']['realname'] ) ) {
+					$user->mRealName = $results['query']['userinfo']['realname'];
+				}
+
 			}
 
-			# Scraping stuff; there really should be api queries for this...
-			# Older versions had the user append ?uselang=en; remove that since we'll do that ourselves here.
-			$wgMediaWikiAuthPrefsURL = str_replace( array( '?uselang=en', '&uselang=en' ), '', $wgMediaWikiAuthPrefsURL );
+			if ( !$user->mRealName || !$user->mEmail ) {
+				# Backwards-compat screenscraping...
+				# Older versions had the user append ?uselang=en; remove that since we'll do that ourselves here.
+				$wgMediaWikiAuthPrefsURL = str_replace( array( '?uselang=en', '&uselang=en' ), '', $wgMediaWikiAuthPrefsURL );
 
-			if ( strpos( $wgMediaWikiAuthPrefsURL, '?' ) ) {
-				$this->snoopy->fetch( $wgMediaWikiAuthPrefsURL . '&uselang=qqx' );
-			} else {
-				$this->snoopy->fetch( $wgMediaWikiAuthPrefsURL . '?uselang=qqx' );
-			}
-			$result = $this->snoopy->results;
-
-			# wpRealName = 1.15 and older, wprealname = 1.16+
-			if ( preg_match( '^.*wp(R|r)eal(N|n)ame.*value="(.*?)".*^', $result, $matches ) ) {
-				$user->setRealName( stripslashes( html_entity_decode( $matches[3], ENT_QUOTES, 'UTF-8' ) ) );
-			}
-			# wpUserEmail = 1.15 and older, wpemailaddress = 1.16+
-			if ( preg_match( '^.*(wpUserEmail|wpemailaddress).*value="(.*?)".*^', $result, $matches ) ) {
-				$user->mEmail = stripslashes( html_entity_decode( $matches[2], ENT_QUOTES, 'UTF-8' ) );
-				wfRunHooks( 'UserSetEmail', array( $this, &$this->mEmail ) );
-				# We assume the target server knows what it is doing.
-				if (
-					strpos( $result, '(emailauthenticated: ' )
-					|| strpos( $result, '(usersignup-user-pref-emailauthenticated)' ) # Wikia
-				) {
-					$user->confirmEmail();
+				if ( strpos( $wgMediaWikiAuthPrefsURL, '?' ) ) {
+					$this->snoopy->fetch( $wgMediaWikiAuthPrefsURL . '&uselang=qqx' );
 				} else {
-					$user->sendConfirmationMail();
+					$this->snoopy->fetch( $wgMediaWikiAuthPrefsURL . '?uselang=qqx' );
+				}
+				$result = $this->snoopy->results;
+
+				# wpRealName = 1.15 and older, wprealname = 1.16+
+				if ( !$user->mRealName && preg_match( '^.*wp(R|r)eal(N|n)ame.*value="(.*?)".*^', $result, $matches ) ) {
+					$user->setRealName( stripslashes( html_entity_decode( $matches[3], ENT_QUOTES, 'UTF-8' ) ) );
+				}
+				# wpUserEmail = 1.15 and older, wpemailaddress = 1.16+
+				if ( $user->mEmail == "" && preg_match( '^.*(wpUserEmail|wpemailaddress).*value="(.*?)".*^', $result, $matches ) ) {
+					$user->mEmail = stripslashes( html_entity_decode( $matches[2], ENT_QUOTES, 'UTF-8' ) );
+					wfRunHooks( 'UserSetEmail', array( $this, &$this->mEmail ) );
+					# We assume the target server knows what it is doing.
+					if (
+						strpos( $result, '(emailauthenticated: ' )
+						|| strpos( $result, '(usersignup-user-pref-emailauthenticated)' ) # Wikia
+					) {
+						$user->confirmEmail();
+					} else {
+						$user->sendConfirmationMail();
+					}
 				}
 			}
 
