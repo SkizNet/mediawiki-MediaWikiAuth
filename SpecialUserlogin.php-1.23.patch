@@ -1,0 +1,93 @@
+Index: SpecialUserlogin.php
+===================================================================
+--- SpecialUserlogin.php	(revision 2544)
++++ SpecialUserlogin.php	(revision 2545)
+@@ -366,6 +366,12 @@
+ 			return Status::newFatal( 'wrongpassword' );
+ 		}
+ 
++		// Patch for MediaWikiAuth extension
++		if ( self::checkImportableUser( $this->mUsername ) ) {
++			return Status::newFatal( 'userexists' );
++		}
++		// Patch ends here
++
+ 		// If we are not allowing users to login locally, we should be checking
+ 		// to see if the user is actually able to authenticate to the authenti-
+ 		// cation server before they create an account (otherwise, they can
+@@ -785,9 +791,13 @@
+ 			return self::NOT_EXISTS;
+ 		}
+ 
+-		if ( !$wgAuth->authenticate( $user->getName(), $this->mPassword ) ) {
++		// Patch for MediaWikiAuth extension
++		$errormsg = null;
++		if ( !$wgAuth->authenticate( $user->getName(), $this->mPassword, $errormsg ) ) {
+ 			wfDebug( __METHOD__ . ": \$wgAuth->authenticate() returned false, aborting\n" );
+-
++			// The AuthPlugin may have set a custom error message
++			$this->mainLoginForm( isset( $errormsg ) ? $errormsg : wfMessage( 'wrongpassword' )->text() );
++			// Patch ends here
+ 			return self::WRONG_PLUGIN_PASS;
+ 		}
+ 
+@@ -880,8 +890,11 @@
+ 				$this->mainLoginForm( $this->msg( $error )->text() );
+ 				break;
+ 			case self::WRONG_PLUGIN_PASS:
++				/* Patch for MediaWikiAuth extension
++				 * Message is handled in the authentication code
+ 				$error = $this->mAbortLoginErrorMsg ?: 'wrongpassword';
+ 				$this->mainLoginForm( $this->msg( $error )->text() );
++				 */
+ 				break;
+ 			case self::NOT_EXISTS:
+ 				if ( $this->getUser()->isAllowed( 'createaccount' ) ) {
+@@ -1156,6 +1169,47 @@
+ 	}
+ 
+ 	/**
++	 * New function for MediaWikiAuth extension
++	 *
++	 * @param $username mixed username to check
++	 * @return bool
++	 */
++	public static function checkImportableUser( $username ) {
++		$dbr = wfGetDB( DB_SLAVE );
++
++		# Check against existing users
++		if ( $dbr->tableExists( 'user' ) ) {
++			$res = $dbr->select(
++				'user',
++				array( 'user_id' ),
++				array( 'user_name' => $username ),
++				__METHOD__
++			);
++			$row = $dbr->fetchObject( $res );
++			# Check for valid id to see if user already exists; stop if it does
++			# In theory, anyway.
++			if ( $row > 0 ) {
++				return false;
++			}
++
++			# Let's see if the count of revisiosn by their name is greater than 1
++			# This is not 100% correct as it possible to have a username
++			# like greenReaper, enter greenreaper and match
++			# However, we're just checking to see if we should even try, here
++			$revisions = $dbr->selectField(
++				'revision',
++				'COUNT(1)',
++				array( 'rev_user_text' => $username ),
++				__METHOD__
++			);
++			if ( $revisions ) {
++				return true;
++			}
++		}
++		return false;
++	}
++
++	/**
+ 	 * @private
+ 	 */
+ 	function mainLoginForm( $msg, $msgtype = 'error' ) {
