@@ -276,11 +276,12 @@ class MediaWikiAuthPlugin extends AuthPlugin {
 				'format' => 'php'
 			);
 			$this->snoopy->submit( $wgMediaWikiAuthAPIURL, $account_vars );
+			$unserializedResults = unserialize( $this->snoopy->results );
 			# Remove formatting from API timestamp; database expects a plain number
 			$results = str_replace(
 				array( ':', 'T', 'Z', '-' ),
 				'',
-				unserialize( $this->snoopy->results )['query']['users'][0]['registration']
+				$unserializedResults['query']['users'][0]['registration']
 			);
 			# Bogus time? Missing dates default to the current timestamp; fall back to first edit
 			if ( substr( $results, 0, 8 ) == gmdate( 'Ymd', time() ) ) {
