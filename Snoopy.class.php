@@ -95,20 +95,20 @@ class Snoopy {
 												// as of this Snoopy release.
 
 	/**** Private variables ****/
-	var	$_maxlinelen	= 4096;					// max line length (headers)
+	public	$_maxlinelen	= 4096;					// max line length (headers)
 
-	var $_httpmethod	= 'GET';				// default http request method
-	var $_httpversion	= 'HTTP/1.0';			// default http request version
-	var $_submit_method	= 'POST';				// default submit method
-	var $_submit_type	= 'application/x-www-form-urlencoded'; // default submit type
-	var $_mime_boundary	= '';					// MIME boundary for multipart/form-data submit type
-	var $_redirectaddr	= false;				// will be set if page fetched is a redirect
-	var $_redirectdepth	= 0;					// increments on an http redirect
-	var $_frameurls		= array();				// frame src urls
-	var $_framedepth	= 0;					// increments on frame depth
+	public $_httpmethod	= 'GET';				// default http request method
+	public $_httpversion	= 'HTTP/1.0';			// default http request version
+	public $_submit_method	= 'POST';				// default submit method
+	public $_submit_type	= 'application/x-www-form-urlencoded'; // default submit type
+	public $_mime_boundary	= '';					// MIME boundary for multipart/form-data submit type
+	public $_redirectaddr	= false;				// will be set if page fetched is a redirect
+	public $_redirectdepth	= 0;					// increments on an http redirect
+	public $_frameurls		= array();				// frame src urls
+	public $_framedepth	= 0;					// increments on frame depth
 
-	var $_isproxy		= false;				// set if using a proxy server
-	var $_fp_timeout	= 30;					// timeout for socket connection
+	public $_isproxy		= false;				// set if using a proxy server
+	public $_fp_timeout	= 30;					// timeout for socket connection
 
 	/*======================================================================*\
 	Function:	fetch
