@@ -1,13 +1,23 @@
-Index: SpecialUserlogin.php
-===================================================================
---- SpecialUserlogin.php	(revision 2544)
-+++ SpecialUserlogin.php	(revision 2545)
-@@ -366,6 +366,12 @@
+diff --git a/includes/specials/SpecialUserlogin.php b/includes/specials/SpecialUserlogin.php
+old mode 100644
+new mode 100755
+index 9a2e194..c0b62d9
+--- a/includes/specials/SpecialUserlogin.php
++++ b/includes/specials/SpecialUserlogin.php
+@@ -359,13 +359,19 @@ class LoginForm extends SpecialPage {
+ 	 */
+ 	public function addNewAccountInternal() {
+ 		global $wgAuth, $wgMemc, $wgAccountCreationThrottle,
+-			$wgMinimalPasswordLength, $wgEmailConfirmToEdit;
++			$wgMinimalPasswordLength, $wgEmailConfirmToEdit, $wgMediaWikiAuthAPIURL;
+ 
+ 		// If the user passes an invalid domain, something is fishy
+ 		if ( !$wgAuth->validDomain( $this->mDomain ) ) {
  			return Status::newFatal( 'wrongpassword' );
  		}
  
 +		// Patch for MediaWikiAuth extension
-+		if ( self::checkImportableUser( $this->mUsername ) ) {
++		if ( isset( $wgMediaWikiAuthAPIURL ) && self::checkImportableUser( $this->mUsername ) ) {
 +			return Status::newFatal( 'userexists' );
 +		}
 +		// Patch ends here
@@ -15,7 +25,7 @@ Index: SpecialUserlogin.php
  		// If we are not allowing users to login locally, we should be checking
  		// to see if the user is actually able to authenticate to the authenti-
  		// cation server before they create an account (otherwise, they can
-@@ -785,9 +791,13 @@
+@@ -785,9 +791,13 @@ class LoginForm extends SpecialPage {
  			return self::NOT_EXISTS;
  		}
  
@@ -31,7 +41,7 @@ Index: SpecialUserlogin.php
  			return self::WRONG_PLUGIN_PASS;
  		}
  
-@@ -880,8 +890,11 @@
+@@ -880,8 +890,11 @@ class LoginForm extends SpecialPage {
  				$this->mainLoginForm( $this->msg( $error )->text() );
  				break;
  			case self::WRONG_PLUGIN_PASS:
@@ -43,7 +53,7 @@ Index: SpecialUserlogin.php
  				break;
  			case self::NOT_EXISTS:
  				if ( $this->getUser()->isAllowed( 'createaccount' ) ) {
-@@ -1156,6 +1169,47 @@
+@@ -1156,6 +1169,47 @@ class LoginForm extends SpecialPage {
  	}
  
  	/**
