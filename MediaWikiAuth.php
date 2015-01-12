@@ -5,14 +5,14 @@
  *
  * @file
  * @ingroup Extensions
- * @version 0.7.1
+ * @version 0.8.1
  * @author Laurence "GreenReaper" Parry
- * @author Jack Phoenix
+ * @author Jack Phoenix <jack@countervandalism.net>
  * @author Kim Schoonover
  * @author Ryan Schmidt
  * @copyright © 2009-2010 Laurence "GreenReaper" Parry
- * @copyright © 2010-2013 Jack Phoenix, Ryan Schmidt
- * @copyright © 2012-2013 Kim Schoonover
+ * @copyright © 2010-2015 Jack Phoenix, Ryan Schmidt
+ * @copyright © 2012-2015 Kim Schoonover
  * @license http://www.gnu.org/copyleft/gpl.html GNU General Public License 2.0 or later
  * @link https://www.mediawiki.org/wiki/Extension:MediaWikiAuth Documentation
  */
@@ -40,13 +40,13 @@ $wgExtensionCredits['other'][] = array(
 	'path' => __FILE__,
 	'name' => 'MediaWikiAuth',
 	'author' => array( 'Laurence Parry', 'Jack Phoenix', 'Kim Schoonover', 'Ryan Schmidt' ),
-	'version' => '0.8.0',
+	'version' => '0.8.1',
 	'url' => 'https://www.mediawiki.org/wiki/Extension:MediaWikiAuth',
 	'description' => 'Authenticates against and imports logins from an external MediaWiki instance',
 );
 
 # Stuff
 $wgMessagesDirs['MediaWikiAuth'] = __DIR__ . '/i18n';
-$wgExtensionMessagesFiles['MediaWikiAuth'] = dirname( __FILE__ ) . '/MediaWikiAuth.i18n.php';
+$wgExtensionMessagesFiles['MediaWikiAuth'] = __DIR__ . '/MediaWikiAuth.i18n.php';
 
 $wgAutoloadClasses['MediaWikiAuthPlugin'] = __DIR__ . '/MediaWikiAuthPlugin.class.php';

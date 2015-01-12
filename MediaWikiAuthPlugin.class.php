@@ -35,11 +35,13 @@ class MediaWikiAuthPlugin extends AuthPlugin {
 	 * Using &$errormsg requires a patch, otherwise it'll always be "bad password"
 	 * See Extension:MediaWikiAuth for this patch
 	 *
-	 * @param $username Mixed: username
-	 * @param $password Mixed: password to the above username
-	 * @param $errormsg Mixed: error message or null
+	 * @param string $username Username
+	 * @param string $password Password to the above username
+	 * @param string|null $errormsg Error message, if any
 	 */
 	function authenticate( $username, $password, &$errormsg = null ) {
+		global $wgMediaWikiAuthAPIURL;
+
 		$dbr = wfGetDB( DB_SLAVE );
 
 		# If the user exists locally, fall back to local auth
@@ -56,11 +58,10 @@ class MediaWikiAuthPlugin extends AuthPlugin {
 				return false;
 			}
 		}
-		global $wgMediaWikiAuthAPIURL;
 
 		# This is loaded here so it isn't loaded needlessly
 		if ( !class_exists( 'Snoopy', false ) ) {
-			require_once( dirname( __FILE__ ) . '/Snoopy.class.php' );
+			require_once( __DIR__ . '/Snoopy.class.php' );
 		}
 		$this->snoopy = new Snoopy();
 		$this->snoopy->agent = 'Mozilla/5.0 (compatible; MSIE 9.0; Windows NT 6.1; Trident/5.0)';
@@ -78,7 +79,7 @@ class MediaWikiAuthPlugin extends AuthPlugin {
 			# Did we get in? Look for result: 'Success'
 			$results = unserialize( $this->snoopy->results );
 			wfDebugLog( 'MediaWikiAuth', 'Login result:' . print_r( $results, true ) );
-			$errormsg = wfMsg( 'mwa-error-unknown' );
+			$errormsg = wfMessage( 'mwa-error-unknown' )->escaped();
 			if ( isset( $results['login'] ) ) {
 				$login = $results['login'];
 				# This ignores the NoName option as it will be filtered out before now
@@ -98,7 +99,7 @@ class MediaWikiAuthPlugin extends AuthPlugin {
 								array( 'user_id' => $this->old_user_id ),
 								__METHOD__
 							);
-							if( $dbr->fetchObject( $localUser ) ) {
+							if ( $dbr->fetchObject( $localUser ) ) {
 								$resid = (int)$dbr->selectField(
 									'user',
 									'user_id',
@@ -114,10 +115,10 @@ class MediaWikiAuthPlugin extends AuthPlugin {
 
 					case 'NotExists':
 						global $wgUser;
-						if( $wgUser->isAllowed( 'createaccount' ) ) {
-							$errormsg = wfMsgWikiHtml( 'nosuchuser', htmlspecialchars( $username ) );
+						if ( $wgUser->isAllowed( 'createaccount' ) ) {
+							$errormsg = wfMessage( 'nosuchuser', htmlspecialchars( $username ) )->escaped();
 						} else {
-							$errormsg = wfMsg( 'nosuchusershort', htmlspecialchars( $username ) );
+							$errormsg = wfMessage( 'nosuchusershort', htmlspecialchars( $username ) )->escaped();
 						}
 						break;
 
@@ -128,32 +129,33 @@ class MediaWikiAuthPlugin extends AuthPlugin {
 						break;
 
 					case 'WrongToken':
-						$errormsg = wfMsg( 'mwa-error-wrong-token' );
+						$errormsg = wfMessage( 'mwa-error-wrong-token' )->escaped();
 						break;
 
 					case 'EmptyPass':
-						$errormsg = wfMsg( 'wrongpasswordempty' );
+						$errormsg = wfMessage( 'wrongpasswordempty' )->escaped();
 						break;
 
 					case 'WrongPass':
 					case 'WrongPluginPass':
-						$errormsg = wfMsg( 'wrongpassword' );
+						$errormsg = wfMessage( 'wrongpassword' )->escaped();
 						break;
 
 					case 'CreateBlocked':
-						$errormsg = wfMsg( 'mwa-autocreate-blocked' );
+						$errormsg = wfMessage( 'mwa-autocreate-blocked' )->escaped();
 						break;
 
 					case 'Throttled':
-						$errormsg = wfMsg( 'login-throttled' );
+						global $wgLang, $wgPasswordAttemptThrottle;
+						$errormsg = wfMessage( 'login-throttled' )->params( $wgLang->formatDuration( $wgPasswordAttemptThrottle['seconds'] ) )->text();
 						break;
 
 					case 'ResetPass':
-						$errormsg = wfMsg( 'mwa-resetpass' );
+						$errormsg = wfMessage( 'mwa-resetpass' )->escaped();
 						break;
 				}
 				if ( isset( $login['wait'] ) ) {
-					$errormsg .= ' ' . wfMsg( 'mwa-wait', $login['wait'] );
+					$errormsg .= ' ' . wfMessage( 'mwa-wait', $login['wait'] )->escaped();
 				}
 			}
 		} while ( isset( $results['login'] ) && $login['result'] == 'NeedToken' );
@@ -243,11 +245,11 @@ class MediaWikiAuthPlugin extends AuthPlugin {
 					__METHOD__,
 					array( 'ORDER BY' => 'rev_timestamp ASC', 'LIMIT' => 1 )
 				);
-				if( $res->numRows() ) {
+				if ( $res->numRows() ) {
 					$results = $dbr->fetchObject( $res )->rev_timestamp;
 				}
 			}
-			if( is_numeric( $results ) ) {
+			if ( is_numeric( $results ) ) {
 				$dbw->update(
 					'user',
 					array( 'user_registration' => $results ),
@@ -368,14 +370,15 @@ class MediaWikiAuthPlugin extends AuthPlugin {
 					$user->setRealName( stripslashes( html_entity_decode( $matches[3], ENT_QUOTES, 'UTF-8' ) ) );
 				}
 				# wpUserEmail = 1.15 and older, wpemailaddress = 1.16+
-				if ( $user->mEmail == "" && preg_match( '^.*(wpUserEmail|wpemailaddress).*value="(.*?)".*^', $result, $matches ) ) {
+				if ( $user->mEmail == '' && preg_match( '^.*(wpUserEmail|wpemailaddress).*value="(.*?)".*^', $result, $matches ) ) {
 					$user->mEmail = stripslashes( html_entity_decode( $matches[2], ENT_QUOTES, 'UTF-8' ) );
 					wfRunHooks( 'UserSetEmail', array( $this, &$this->mEmail ) );
 					# We assume the target server knows what it is doing.
 					if (
-						strpos( $result, '(emailauthenticated: ' )
-						|| strpos( $result, '(usersignup-user-pref-emailauthenticated)' ) # Wikia
-					) {
+						strpos( $result, '(emailauthenticated: ' ) ||
+						strpos( $result, '(usersignup-user-pref-emailauthenticated)' ) # Wikia
+					)
+					{
 						$user->confirmEmail();
 					} else {
 						$user->sendConfirmationMail();
@@ -402,6 +405,7 @@ class MediaWikiAuthPlugin extends AuthPlugin {
 			$logout_vars = array( 'action' => 'logout' );
 			$this->snoopy->submit( $wgMediaWikiAuthAPIURL, $logout_vars );
 		}
+
 		return true;
 	}
 }
