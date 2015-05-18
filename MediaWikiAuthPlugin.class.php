@@ -264,6 +264,7 @@ class MediaWikiAuthPlugin extends AuthPlugin {
 				'action' => 'query',
 				'list' => 'watchlistraw',
 				'wrlimit' => '500',
+				'rawcontinue' => '1',
 				'format' => 'php'
 			);
 			$more = true;
