@@ -1,13 +1,13 @@
 {
-    "@metadata": {
-        "authors": [
-            "Laurence \"GreenReaper\" Parry"
-        ]
-    },
-    "mwa-autocreate-blocked": "Automatic account creation is blocked for this IP on the remote wiki.",
-    "mwa-error-unknown": "Unknown error when logging in to the remote wiki.",
-    "mwa-error-wrong-token": "A login token submission error occurred. Please retry, and contact an administrator if this fails.",
-    "mwa-must-be-imported": "Your account must be imported.\nPlease <a target=\"_new\" href=\"http://www.wikia.com/wiki/Special:UserLogin\">reset your password at Wikia</a>, then use the new password here.<br /><br />\n<b>Note:</b> You must use the password Wikia emails you to login there. You will then be asked to set a new password, which can be used here.",
-    "mwa-resetpass": "You cannot login with a temporary password. Please use it on the remote wiki to create a new permanent password.",
-    "mwa-wait": "Please wait $1 seconds before trying again."
+	"@metadata": {
+		"authors": [
+			"Laurence \"GreenReaper\" Parry"
+		]
+	},
+	"mwa-autocreate-blocked": "Automatic account creation is blocked for this IP on the remote wiki.",
+	"mwa-error-unknown": "Unknown error when logging in to the remote wiki.",
+	"mwa-error-wrong-token": "A login token submission error occurred. Please retry, and contact an administrator if this fails.",
+	"mwa-must-be-imported": "Your account must be imported.\nPlease <a target=\"_new\" href=\"http://www.wikia.com/wiki/Special:UserLogin\">reset your password at Wikia</a>, then use the new password here.<br /><br />\n<b>Note:</b> You must use the password Wikia emails you to login there. You will then be asked to set a new password, which can be used here.",
+	"mwa-resetpass": "You cannot login with a temporary password. Please use it on the remote wiki to create a new permanent password.",
+	"mwa-wait": "Please wait $1 seconds before trying again."
 }
