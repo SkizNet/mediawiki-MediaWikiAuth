@@ -42,7 +42,7 @@ $wgExtensionCredits['other'][] = array(
 	'author' => array( 'Laurence Parry', 'Jack Phoenix', 'Kim Schoonover', 'Ryan Schmidt' ),
 	'version' => '0.8.1',
 	'url' => 'https://www.mediawiki.org/wiki/Extension:MediaWikiAuth',
-	'description' => 'Authenticates against and imports logins from an external MediaWiki instance',
+	'descriptionmsg' => 'mwa-desc',
 );
 
 # Stuff

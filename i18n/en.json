@@ -4,6 +4,7 @@
 			"Laurence \"GreenReaper\" Parry"
 		]
 	},
+	"mwa-desc": "Authenticates against and imports logins from an external MediaWiki instance",
 	"mwa-autocreate-blocked": "Automatic account creation is blocked for this IP on the remote wiki.",
 	"mwa-error-unknown": "Unknown error when logging in to the remote wiki.",
 	"mwa-error-wrong-token": "A login token submission error occurred. Please retry, and contact an administrator if this fails.",
