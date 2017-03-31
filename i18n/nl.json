@@ -1,13 +1,13 @@
 {
-    "@metadata": {
-        "authors": [
-            "Jedimca0"
-        ]
-    },
-    "mwa-autocreate-blocked": "Automatische account creatie is voor dit IP adres geblokkeerd",
-    "mwa-error-unknown": "Er heeft zich een onbekende fout voorgedaan tijdens het inloggen.",
-    "mwa-error-wrong-token": "Er heeft zich een login token error voorgedaan. Probeer het alstublieft opnieuw, en neem contact op met een administrator als het dan nog niet lukt.",
-    "mwa-must-be-imported": "Uw account moet geïmporteerd worden.\n<a target=\"_new\" href=\"http://www.wikia.com/wiki/Special:UserLogin\">Reset uw wachtwoord op Wikia</a> en gebruik het dan hier.<br /><br />\n<b>Note:</b> U moet het wachtwoord gebruiken dat Wikia u per email gestuurd heeft, daarna moet u uw wachtwoord wijzigen.",
-    "mwa-resetpass": "U kunt niet inloggen met een tijdelijk wachtwoord. Gebruik het om de \"remote wiki\" om een nieuw, permanent, wachtwoord in te stellen.",
-    "mwa-wait": "Wacht alstublieft $1 seconden en probeer het dan opnieuw."
+	"@metadata": {
+		"authors": [
+			"Jedimca0"
+		]
+	},
+	"mwa-autocreate-blocked": "Automatische account creatie is voor dit IP adres geblokkeerd",
+	"mwa-error-unknown": "Er heeft zich een onbekende fout voorgedaan tijdens het inloggen.",
+	"mwa-error-wrong-token": "Er heeft zich een login token error voorgedaan. Probeer het alstublieft opnieuw, en neem contact op met een administrator als het dan nog niet lukt.",
+	"mwa-must-be-imported": "Uw account moet geïmporteerd worden.\n<a target=\"_new\" href=\"http://www.wikia.com/wiki/Special:UserLogin\">Reset uw wachtwoord op Wikia</a> en gebruik het dan hier.<br /><br />\n<b>Note:</b> U moet het wachtwoord gebruiken dat Wikia u per email gestuurd heeft, daarna moet u uw wachtwoord wijzigen.",
+	"mwa-resetpass": "U kunt niet inloggen met een tijdelijk wachtwoord. Gebruik het om de \"remote wiki\" om een nieuw, permanent, wachtwoord in te stellen.",
+	"mwa-wait": "Wacht alstublieft $1 seconden en probeer het dan opnieuw."
 }

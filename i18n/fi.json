@@ -1,12 +1,12 @@
 {
-    "@metadata": {
-        "authors": [
-            "Jack Phoenix"
-        ]
-    },
-    "mwa-autocreate-blocked": "Tunnuksen automaattinen luominen tälle IP:lle on estetty etäwikissä.",
-    "mwa-error-unknown": "Tuntematon virhe kirjautuessa sisään etäwikiin.",
-    "mwa-must-be-imported": "Tunnuksesi täytyy tuoda. <a target=\"_new\" href=\"http://www.wikia.com/wiki/Special:UserLogin\">Aseta itsellesi uusi salasana Wikiassa</a>, ja sen jälkeen käytä uutta salasanaa täällä.<br /><br />\n<b>Huomioi:</b> Sinun tulee käyttää salasanaa, jonka Wikia lähettää sinulle sähköpostitse kirjautuessasi sisään sinne. Sen jälkeen sinua pyydetään asettamaan uusi salasana, jota voi käyttää täällä.",
-    "mwa-resetpass": "Et voi kirjautua sisään tilapäisellä salasanalla. Ole hyvä ja käytä sitä etäwikissä luodaksesi pysyvän salasanan.",
-    "mwa-wait": "Ole hyvä ja odota $1 sekuntia ennen kuin yrität uudelleen."
+	"@metadata": {
+		"authors": [
+			"Jack Phoenix"
+		]
+	},
+	"mwa-autocreate-blocked": "Tunnuksen automaattinen luominen tälle IP:lle on estetty etäwikissä.",
+	"mwa-error-unknown": "Tuntematon virhe kirjautuessa sisään etäwikiin.",
+	"mwa-must-be-imported": "Tunnuksesi täytyy tuoda. <a target=\"_new\" href=\"http://www.wikia.com/wiki/Special:UserLogin\">Aseta itsellesi uusi salasana Wikiassa</a>, ja sen jälkeen käytä uutta salasanaa täällä.<br /><br />\n<b>Huomioi:</b> Sinun tulee käyttää salasanaa, jonka Wikia lähettää sinulle sähköpostitse kirjautuessasi sisään sinne. Sen jälkeen sinua pyydetään asettamaan uusi salasana, jota voi käyttää täällä.",
+	"mwa-resetpass": "Et voi kirjautua sisään tilapäisellä salasanalla. Ole hyvä ja käytä sitä etäwikissä luodaksesi pysyvän salasanan.",
+	"mwa-wait": "Ole hyvä ja odota $1 sekuntia ennen kuin yrität uudelleen."
 }
