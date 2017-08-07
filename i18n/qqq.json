@@ -1,4 +1,10 @@
 {
 	"@metadata": {},
-	"mwa-desc": "{{desc|name=MediaWikiAuth|url=https://www.mediawiki.org/wiki/Extension:MediaWikiAuth}}"
+	"mwa-desc": "{{desc|name=MediaWikiAuth|url=https://www.mediawiki.org/wiki/Extension:MediaWikiAuth}}",
+	"mwa-autocreate-blocked": "Used as error message for blocked user on account creation",
+	"mwa-error-unknown": "Used as generic error message on account creation",
+	"mwa-error-wrong-token": "Used as error message for wrong token on account creation",
+	"mwa-must-be-imported": "Used as message on account creation",
+	"mwa-resetpass": "Used as error message for resetting password",
+	"mwa-wait": "Used as message to wait on account creation"
 }
