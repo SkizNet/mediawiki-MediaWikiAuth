@@ -9,7 +9,7 @@ class MediaWikiAuthPlugin extends AuthPlugin {
 
 	function userExists( $username ) {
 		# Check against a table of existing names to import
-		$dbr = wfGetDB( DB_SLAVE );
+		$dbr = wfGetDB( DB_REPLICA );
 
 		# If this table doesn't exist, we can't check this way
 		if ( $dbr->tableExists( 'user' ) ) {
@@ -42,7 +42,7 @@ class MediaWikiAuthPlugin extends AuthPlugin {
 	function authenticate( $username, $password, &$errormsg = null ) {
 		global $wgMediaWikiAuthAPIURL;
 
-		$dbr = wfGetDB( DB_SLAVE );
+		$dbr = wfGetDB( DB_REPLICA );
 
 		# If the user exists locally, fall back to local auth
 		if ( $dbr->tableExists( 'user' ) ) {
@@ -92,7 +92,7 @@ class MediaWikiAuthPlugin extends AuthPlugin {
 						if ( !isset( $this->old_user_id ) ) {
 							$this->old_user_id = $login['lguserid'];
 							# Check if ID already exists and handle
-							$dbr = wfGetDB( DB_SLAVE );
+							$dbr = wfGetDB( DB_REPLICA );
 							$localUser = $dbr->select(
 								'user',
 								'user_name',
@@ -198,7 +198,7 @@ class MediaWikiAuthPlugin extends AuthPlugin {
 			);
 
 			# Get correct edit count
-			$dbr = wfGetDB( DB_SLAVE );
+			$dbr = wfGetDB( DB_REPLICA );
 			$count = $dbr->selectField(
 				'revision',
 				'COUNT(rev_user)',

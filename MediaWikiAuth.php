@@ -40,7 +40,7 @@ $wgExtensionCredits['other'][] = array(
 	'path' => __FILE__,
 	'name' => 'MediaWikiAuth',
 	'author' => array( 'Laurence Parry', 'Jack Phoenix', 'Kim Schoonover', 'Ryan Schmidt' ),
-	'version' => '0.8.1',
+	'version' => '0.8.2',
 	'url' => 'https://www.mediawiki.org/wiki/Extension:MediaWikiAuth',
 	'descriptionmsg' => 'mwa-desc',
 );
