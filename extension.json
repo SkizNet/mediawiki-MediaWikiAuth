@@ -1,0 +1,39 @@
+{
+	"name": "MediaWikiAuth",
+	"version": "0.9.0",
+	"author": [
+		"Laurence Parry",
+		"Jack Phoenix",
+		"Kim Schoonover",
+		"Ryan Schmidt"
+	],
+	"url": "https://www.mediawiki.org/wiki/Extension:MediaWikiAuth",
+	"descriptionmsg": "mwa-desc",
+	"license-name": "GPL-2.0+",
+	"type": "other",
+	"config": {
+		"MediaWikiAuthApiUrl": ""
+	},
+	"MessagesDirs": {
+		"MediaWikiAuth": [
+			"i18n"
+		]
+	},
+	"AutoloadClasses": {
+		"MediaWikiAuth\\ExternalWikiPrimaryAuthenticationProvider": "ExternalWikiPrimaryAuthenticationProvider.php",
+		"MediaWikiAuth\\PopulateImportedWatchlistJob": "PopulateImportedWatchlistJob.php"
+	},
+	"JobClasses": {
+		"populateImportedWatchlist": "MediaWikiAuth\\PopulateImportedWatchlistJob"
+	},
+	"AuthManagerAutoConfig": {
+		"primaryauth": {
+			"ExternalWikiPrimaryAuthenticationProvider": {
+				"class": "MediaWikiAuth\\ExternalWikiPrimaryAuthenticationProvider",
+				"args": [ { "authoritative": false } ],
+				"sort": 50
+			}
+		}
+	},
+	"manifest_version": 1
+}

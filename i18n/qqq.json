@@ -1,10 +1,9 @@
 {
 	"@metadata": {},
 	"mwa-desc": "{{desc|name=MediaWikiAuth|url=https://www.mediawiki.org/wiki/Extension:MediaWikiAuth}}",
-	"mwa-autocreate-blocked": "Used as error message for blocked user on account creation",
 	"mwa-error-unknown": "Used as generic error message on account creation",
-	"mwa-error-wrong-token": "Used as error message for wrong token on account creation",
-	"mwa-must-be-imported": "Used as message on account creation",
-	"mwa-resetpass": "Used as error message for resetting password",
-	"mwa-wait": "Used as message to wait on account creation"
+	"mwa-authfail": "Used as an error message to indicate the user was unable to log into the remote wiki, perhaps because they are using the wrong password.",
+	"mwa-finishcreate": "Used as a success message that an account was imported, and is displayed above a field that lets the user change their password. $1 is the label of the Skip button so that the user can keep the same password.",
+	"mwa-unconfiguredtitle": "Used as the page title on the error page when the extension is not configured",
+	"mwa-unconfiguredtext": "Used as the page text on the error page when the extension is not configured. $wgMediaWikiAuthApiUrl is a PHP variable name and must be preserved as-is; do not translate or modify it."
 }
