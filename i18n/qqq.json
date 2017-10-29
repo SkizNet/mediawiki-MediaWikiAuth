@@ -1,5 +1,5 @@
 {
-	"@metadata": {},
+	"@metadata": [],
 	"mwa-desc": "{{desc|name=MediaWikiAuth|url=https://www.mediawiki.org/wiki/Extension:MediaWikiAuth}}",
 	"mwa-error-unknown": "Used as generic error message on account creation",
 	"mwa-authfail": "Used as an error message to indicate the user was unable to log into the remote wiki, perhaps because they are using the wrong password.",

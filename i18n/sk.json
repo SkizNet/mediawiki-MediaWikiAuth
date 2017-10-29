@@ -1,0 +1,13 @@
+{
+	"@metadata": {
+		"authors": [
+			"Pmikolas44"
+		]
+	},
+	"mwa-desc": "Overuje a importuje prihlasovacie údaje z externej inštancie MediaWiki",
+	"mwa-error-unknown": "Neznáma chyba pri prihlasovaní do vzdialenej wiki.",
+	"mwa-authfail": "Nie je možné sa prihlásiť do vzdialenej wiki a importovať svoj účet. Uistite sa, že používate správne heslo.",
+	"mwa-finishcreate": "Váš účet bol úspešne importovaný. Teraz môžete nastaviť nové heslo alebo zvoliť \"$1\" aby ste si udržali svoje aktuálne heslo.",
+	"mwa-unconfiguredtitle": "Rozšírenie nie je nakonfigurované.",
+	"mwa-unconfiguredtext": "Rozšírenie aplikácie MediaWikiAuth nie je správne nakonfigurované. Uistite sa, že $wgMediaWikiAuthApiUrl je nastavené vo vašich LocalSettings.php na API URL vzdialenej wiki."
+}
