@@ -1,0 +1,11 @@
+{
+	"@metadata": {
+		"authors": [
+			"Robby"
+		]
+	},
+	"mwa-desc": "Authentifizéiert an importéiert Logins aus enger externer MediaWiki Instanz",
+	"mwa-error-unknown": "Onbekannte Feeler beim Aloggen an d'Remote-Wiki",
+	"mwa-finishcreate": "Äre Benotzerkont gouf mat Succès importéiert. Dir kënnt elo en neit Passwuert astellen oder \"$1\" eraussiche fir Äert aktuellt Passwuert ze behalen.",
+	"mwa-unconfiguredtitle": "Erweiderung net konfiguréiert."
+}

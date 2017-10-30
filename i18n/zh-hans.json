@@ -1,0 +1,13 @@
+{
+	"@metadata": {
+		"authors": [
+			"Liuxinyu970226"
+		]
+	},
+	"mwa-desc": "从外部MediaWiki实例进行身份验证，并导入登录",
+	"mwa-error-unknown": "登录远程wiki时发生未知错误。",
+	"mwa-authfail": "无法登录远程wiki导入您的账户。请确保您在使用正确的密码。",
+	"mwa-finishcreate": "您的账户已成功导入。您现在可以设置新密码，或选择“$1”以继续使用您当前的密码。",
+	"mwa-unconfiguredtitle": "扩展未配置。",
+	"mwa-unconfiguredtext": "MediaWikiAuth未正确配置。请确保在您的LocalSettings.php中，将$wgMediaWikiAuthApiUrl设置为远程wiki的API URL。"
+}

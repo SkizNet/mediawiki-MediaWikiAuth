@@ -1,0 +1,11 @@
+{
+	"@metadata": {
+		"authors": [
+			"Fitoschido"
+		]
+	},
+	"mwa-error-unknown": "Se produjo un error desconocido al acceder al wiki remoto.",
+	"mwa-authfail": "No se pudo acceder al wiki remoto para importar tu cuenta. Revisa que estés utilizando la contraseña correcta.",
+	"mwa-finishcreate": "La cuenta se importó correctamente. Puedes establecer una contraseña nueva ahora o elegir «$1» para conservar tu contraseña actual.",
+	"mwa-unconfiguredtitle": "No se configuró la extensión."
+}
