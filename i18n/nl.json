@@ -1,8 +1,11 @@
 {
 	"@metadata": {
 		"authors": [
-			"Jedimca0"
+			"Jedimca0",
+			"Mainframe98"
 		]
 	},
-	"mwa-error-unknown": "Er heeft zich een onbekende fout voorgedaan tijdens het inloggen."
+	"mwa-error-unknown": "Er heeft zich een onbekende fout voorgedaan tijdens het inloggen.",
+	"mwa-finishcreate": "Het importeren van uw account is geslaagd. U kunt nu een nieuw wachtwoord instellen of \"$1\" kiezen om uw huidige wachtwoord te behouden.",
+	"mwa-unconfiguredtitle": "Uitbreiding is niet geconfigureerd."
 }
