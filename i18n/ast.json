@@ -1,0 +1,13 @@
+{
+	"@metadata": {
+		"authors": [
+			"Xuacu"
+		]
+	},
+	"mwa-desc": "Identificase escontra una instancia esterna de MediaWiki ya importar los anicios de sesión de la mesma",
+	"mwa-error-unknown": "Error desconocíu al aniciar sesión na wiki remota.",
+	"mwa-authfail": "Nun pudo aniciase sesión na wiki remota pa importar la cuenta. Comprueba que teas utilizando la contraseña correuta.",
+	"mwa-finishcreate": "La cuenta importóse correutamente. Puedes establecer una contraseña nueva agora o escoyer «$1» pa caltener la to contraseña actual.",
+	"mwa-unconfiguredtitle": "Nun se configuró la estensión.",
+	"mwa-unconfiguredtext": "La estensión MediaWikiAuth nun ta configurada correutamente. Comprueba que $wgMediaWikiAuthApiUrl ta presente'n LocalSettings.php cola URL de la API de la wiki remota."
+}
