@@ -1,6 +1,6 @@
 {
 	"name": "MediaWikiAuth",
-	"version": "0.9.0",
+	"version": "0.10.0",
 	"author": [
 		"Laurence Parry",
 		"Jack Phoenix",
@@ -12,7 +12,9 @@
 	"license-name": "GPL-2.0+",
 	"type": "other",
 	"config": {
-		"MediaWikiAuthApiUrl": ""
+		"MediaWikiAuthAllowPasswordChange": false,
+		"MediaWikiAuthApiUrl": "",
+		"MediaWikiAuthImportGroups": true
 	},
 	"MessagesDirs": {
 		"MediaWikiAuth": [
@@ -23,6 +25,9 @@
 		"MediaWikiAuth\\ExternalWikiPrimaryAuthenticationProvider": "ExternalWikiPrimaryAuthenticationProvider.php",
 		"MediaWikiAuth\\PopulateImportedWatchlistJob": "PopulateImportedWatchlistJob.php"
 	},
+	"AvailableRights": [
+		"mwa-createlocalaccount"
+	],
 	"JobClasses": {
 		"populateImportedWatchlist": "MediaWikiAuth\\PopulateImportedWatchlistJob"
 	},

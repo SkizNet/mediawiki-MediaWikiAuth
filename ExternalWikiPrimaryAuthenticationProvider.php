@@ -123,7 +123,9 @@ class ExternalWikiPrimaryAuthenticationProvider
 
 		// Remote login was successful, an account will be automatically created for the user by the system
 		// Mark them as (maybe) needing to reset their password as a secondary auth step.
-		$this->setPasswordResetFlag( $username, Status::newGood() );
+		if ( $this->config->get( 'MediaWikiAuthAllowPasswordChange' ) ) {
+			$this->setPasswordResetFlag( $username, Status::newGood() );
+		}
 
 		return AuthenticationResponse::newPass( $username );
 	}
@@ -190,6 +192,15 @@ class ExternalWikiPrimaryAuthenticationProvider
 
 		// groupmemberships contains groups and expiries, but is only present in recent versions of MW. Fall back to groups if it doesn't exist.
 		$validGroups = array_diff( array_keys( $this->config->get( 'GroupPermissions' ) ), $this->config->get( 'ImplicitGroups' ) );
+		$importableGroups = $this->config->get( 'MediaWikiAuthImportGroups' );
+		if ( $importableGroups === false ) {
+			// do not import any groups
+			$validGroups = [];
+		} elseif ( is_array( $importableGroups ) ) {
+			// array_intersect has a mind-bogglingly stupid implementation,
+			// in the sense that if the first array has dups, those dups are returned even if subsequent arrays don't have that element at all
+			$validGroups = array_intersect( array_unique( $validGroups ), $importableGroups );
+		}
 
 		if ( isset( $userInfo->query->userinfo->groupmemberships ) ) {
 			foreach ( $userInfo->query->userinfo->groupmemberships as $group ) {
@@ -256,6 +267,13 @@ class ExternalWikiPrimaryAuthenticationProvider
 	}
 
 	public function testUserExists( $username, $flags = User::READ_NORMAL ) {
+		// sadly we have no other way of getting at the context here
+		$user = \RequestContext::getMain()->getUser();
+		if ( $user->isAllowed( 'mwa-createlocalaccount' ) ) {
+			// bypass remote wiki checks; user can create local accounts
+			return false;
+		}
+
 		if ( !isset( $this->userCache[$username] ) ) {
 			$resp = $this->apiRequest( 'GET', [
 				'action' => 'query',
@@ -351,7 +369,7 @@ class ExternalWikiPrimaryAuthenticationProvider
 
 	public function accountCreationType() {
 		// while this creates accounts, it does not do so via the Special:CreateAccount UI
-		return TYPE_NONE;
+		return self::TYPE_NONE;
 	}
 
 	protected function getPasswordResetData( $username, $data ) {
