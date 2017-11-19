@@ -10,5 +10,6 @@
 	"mwa-authfail": "No se pudo acceder al wiki remoto para importar tu cuenta. Revisa que estés utilizando la contraseña correcta.",
 	"mwa-finishcreate": "La cuenta se importó correctamente. Puedes establecer una contraseña nueva ahora o elegir «$1» para conservar tu contraseña actual.",
 	"mwa-unconfiguredtitle": "No se configuró la extensión.",
-	"mwa-unconfiguredtext": "La extensión MediaWikiAuth no se configuró debidamente. Asegúrate de que el valor $wgMediaWikiAuthApiUrl en LocalSettings.php esté definido como el URL de la API del wiki remoto."
+	"mwa-unconfiguredtext": "La extensión MediaWikiAuth no se configuró debidamente. Asegúrate de que el valor $wgMediaWikiAuthApiUrl en LocalSettings.php esté definido como el URL de la API del wiki remoto.",
+	"right-mwa-createlocalaccount": "Crear cuentas locales con el mismo nombre de usuario como una cuenta externa no importada"
 }
