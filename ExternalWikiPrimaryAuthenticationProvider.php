@@ -283,7 +283,9 @@ class ExternalWikiPrimaryAuthenticationProvider
 				'aulimit' => 1,
 			], [], __METHOD__ );
 
-			$this->userCache[$username] = count( $resp->query->allusers ) === 1;
+			// some MediaWikis *cough*Wikia*cough* display results for allusers even if there is no exact match
+			// as such we test to ensure the username matches as well
+			$this->userCache[$username] = count( $resp->query->allusers ) === 1 && $resp->query->allusers[0]->name === $username;
 		}
 
 		return $this->userCache[$username];
