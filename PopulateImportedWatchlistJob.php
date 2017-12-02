@@ -39,5 +39,7 @@ class PopulateImportedWatchlistJob extends \Job {
 			// we may wish to import changed as well (as wl_notificationtimestamp in the db). Note that $page->changed may not exists,
 			// need to test with if ( isset( $page->changed ) ) before doing anything with it.
 		}
+
+		return true;
 	}
 }

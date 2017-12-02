@@ -160,35 +160,81 @@ class ExternalWikiPrimaryAuthenticationProvider
 		];
 
 		$watchlist = [];
-
-		while ( true ) {
-			$resp = $this->apiRequest( 'GET', $wrquery, [], __METHOD__ );
-			$watchlist = array_merge( $watchlist, $resp->watchlistraw );
-
-			if ( !isset( $resp->{'query-continue'} ) ) {
-				break;
-			}
-
-			$wrquery['wrcontinue'] = $resp->{'query-continue'}->watchlistraw->wrcontinue;
-		}
-
-		// enqueue jobs to actually add the watchlist pages to the user, since there might be a lot of them
 		$pagesPerJob = (int)$this->config->get( 'UpdateRowsPerJob' );
-		if ( $pagesPerJob <= 0 ) {
-			$this->logger->warning( '$wgUpdateRowsPerJob is set to 0 or a negative value; importing watchlist in batches of 300 instead.' );
-			$pagesPerJob = 300;
+		if ( $pagesPerJob < 100 ) {
+			$this->logger->warning( '$wgUpdateRowsPerJob is set to less than 100; performing jobs in batches of 100 instead.' );
+			$pagesPerJob = 100;
 		}
 
+		$dbw = wfGetDB( DB_MASTER );
+		$dbr = wfGetDB( DB_REPLICA );
 		$jobs = [];
 		$title = $user->getUserPage(); // not used by us, but Job constructor needs a valid Title
-		while ( $watchlist ) {
-			// array_splice reduces the size of $watchlist and returns the removed elements.
-			// This avoids memory bloat so that we only keep the watchlist resident in memory one time.
-			$slice = array_splice( $watchlist, 0, $pagesPerJob );
-			$jobs[] = new PopulateImportedWatchlistJob( $title, [ 'username' => $user->getName(), 'pages' => $slice ] );
+
+		// enqueue jobs to actually add watchlist items and to reattribute already-existing edits (if enabled)
+		if ( $this->config->get( 'MediaWikiAuthImportWatchlist' ) ) {
+			while ( true ) {
+				$resp = $this->apiRequest( 'GET', $wrquery, [], __METHOD__ );
+				$watchlist = array_merge( $watchlist, $resp->watchlistraw );
+
+				if ( !isset( $resp->{'query-continue'} ) ) {
+					break;
+				}
+
+				$wrquery['wrcontinue'] = $resp->{'query-continue'}->watchlistraw->wrcontinue;
+			}
+
+			while ( $watchlist ) {
+				// array_splice reduces the size of $watchlist and returns the removed elements.
+				// This avoids memory bloat so that we only keep the watchlist resident in memory one time.
+				$slice = array_splice( $watchlist, 0, $pagesPerJob );
+				$jobs[] = new PopulateImportedWatchlistJob( $title, [ 'username' => $user->getName(), 'pages' => $slice ] );
+			}
 		}
 
-		\JobQueueGroup::singleton()->push( $jobs );
+		if ( $this->config->get( 'MediaWikiAuthReattributeEdits' ) ) {
+			foreach ( ReattributeImportedEdits::getTableMetadata() as $table => $metadata ) {
+				$idKey = $metadata[0];
+
+				foreach ( $metadata[1] as $nameKey => $fields ) {
+					$idEnd = true; // so next loop doesn't terminate immediately
+
+					for ( $offset = 0; $idEnd !== false; $offset += $pagesPerJob ) {
+						// this is being thrown in the job queue anyway, so up-to-date data isn't required
+						// any newly-imported revs/logs will see our new user and attribute properly anyway
+						$idStart = $dbr->selectField(
+							$table,
+							$idKey,
+							'', // no WHERE clause
+							__METHOD__ . ':idStart',
+							[ 'ORDER BY' => $idKey, 'OFFSET' => $offset ]
+						);
+
+						$idEnd = $dbr->selectField(
+							$table,
+							$idKey,
+							'', // no WHERE clause
+							__METHOD__ . ':idEnd',
+							[ 'ORDER BY' => $idKey, 'OFFSET' => $offset + $pagesPerJob - 1 ]
+						);
+
+						$jobs[] = new ReattributeImportedEditsJob( $title, [
+							'username' => $user->getName(),
+							'id_start' => $idStart,
+							'id_end' => $idEnd,
+							'table' => $table,
+							'idkey' => $idKey,
+							'namekey' => $nameKey,
+							'fields' => $fields
+						] );
+					}
+				}
+			}
+		}
+
+		if ( $jobs !== [] ) {
+			\JobQueueGroup::singleton()->push( $jobs );
+		}
 
 		// groupmemberships contains groups and expiries, but is only present in recent versions of MW. Fall back to groups if it doesn't exist.
 		$validGroups = array_diff( array_keys( $this->config->get( 'GroupPermissions' ) ), $this->config->get( 'ImplicitGroups' ) );
@@ -246,7 +292,6 @@ class ExternalWikiPrimaryAuthenticationProvider
 		}
 
 		// editcount and registrationdate cannot be set via methods on User
-		$dbw = wfGetDB( DB_MASTER );
 		$dbw->update(
 			'user',
 			[

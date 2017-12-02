@@ -1,6 +1,6 @@
 {
 	"name": "MediaWikiAuth",
-	"version": "0.10.0",
+	"version": "1.0.0",
 	"author": [
 		"Laurence Parry",
 		"Jack Phoenix",
@@ -14,7 +14,9 @@
 	"config": {
 		"MediaWikiAuthAllowPasswordChange": false,
 		"MediaWikiAuthApiUrl": "",
-		"MediaWikiAuthImportGroups": true
+		"MediaWikiAuthImportGroups": true,
+		"MediaWikiAuthImportWatchlist": true,
+		"MediaWikiAuthReattributeEdits": true
 	},
 	"MessagesDirs": {
 		"MediaWikiAuth": [
@@ -23,13 +25,16 @@
 	},
 	"AutoloadClasses": {
 		"MediaWikiAuth\\ExternalWikiPrimaryAuthenticationProvider": "ExternalWikiPrimaryAuthenticationProvider.php",
-		"MediaWikiAuth\\PopulateImportedWatchlistJob": "PopulateImportedWatchlistJob.php"
+		"MediaWikiAuth\\PopulateImportedWatchlistJob": "PopulateImportedWatchlistJob.php",
+		"MediaWikiAuth\\ReattributeImportedEdits": "maintenance/reattributeImportedEdits.php",
+		"MediaWikiAuth\\ReattributeImportedEditsJob": "ReattributeImportedEditsJob.php"
 	},
 	"AvailableRights": [
 		"mwa-createlocalaccount"
 	],
 	"JobClasses": {
-		"populateImportedWatchlist": "MediaWikiAuth\\PopulateImportedWatchlistJob"
+		"populateImportedWatchlist": "MediaWikiAuth\\PopulateImportedWatchlistJob",
+		"reattributeImportedEdits": "MediaWikiAuth\\ReattributeImportedEditsJob"
 	},
 	"AuthManagerAutoConfig": {
 		"primaryauth": {
