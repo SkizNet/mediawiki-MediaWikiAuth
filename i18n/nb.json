@@ -1,0 +1,14 @@
+{
+	"@metadata": {
+		"authors": [
+			"Jon Harald Søby"
+		]
+	},
+	"mwa-desc": "Autentiserer mot og importerer innlogginger fra en ekstern MediaWiki-instans",
+	"mwa-error-unknown": "Ukjent feil under innlogging på ekstern wiki.",
+	"mwa-authfail": "Kunne ikke logge inn på den eksterne wikien for å importere kontoen din. Sjekk at du har riktig passord.",
+	"mwa-finishcreate": "Kontoen din har blitt importert. Du kan sette et nytt passord nå, eller velge «$1» for å beholde det nåværende passordet.",
+	"mwa-unconfiguredtitle": "Utvidelsen ikke konfigurert.",
+	"mwa-unconfiguredtext": "MediaWikiAuth-utvidelsen er ikke konfigurert riktig. Sjekk at $wgMediaWikiAuthApiUrl er satt i LocalSettings.php til API-URL-en til den eksterne wikien.",
+	"right-mwa-createlocalaccount": "Opprette lokale kontoer med samme brukernavn som en uimportert ekstern konto"
+}
