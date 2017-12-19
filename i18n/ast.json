@@ -9,5 +9,6 @@
 	"mwa-authfail": "Nun pudo aniciase sesión na wiki remota pa importar la cuenta. Comprueba que teas utilizando la contraseña correuta.",
 	"mwa-finishcreate": "La cuenta importóse correutamente. Puedes establecer una contraseña nueva agora o escoyer «$1» pa caltener la to contraseña actual.",
 	"mwa-unconfiguredtitle": "Nun se configuró la estensión.",
-	"mwa-unconfiguredtext": "La estensión MediaWikiAuth nun ta configurada correutamente. Comprueba que $wgMediaWikiAuthApiUrl ta presente'n LocalSettings.php cola URL de la API de la wiki remota."
+	"mwa-unconfiguredtext": "La estensión MediaWikiAuth nun ta configurada correutamente. Comprueba que $wgMediaWikiAuthApiUrl ta presente'n LocalSettings.php cola URL de la API de la wiki remota.",
+	"right-mwa-createlocalaccount": "Crear cuentes llocales col mesmu nome d'usuariu como una cuenta esterna nun importada"
 }
