@@ -1,0 +1,14 @@
+{
+	"@metadata": {
+		"authors": [
+			"Eduardo Addad de Oliveira"
+		]
+	},
+	"mwa-desc": "Autenticar e importar logins de uma instância MediaWiki externa",
+	"mwa-error-unknown": "Erro desconhecido ao iniciar uma sessão na wiki remota.",
+	"mwa-authfail": "Não é possível iniciar sessão no wiki remoto para importar a sua conta. Verifique se você está usando a senha correta.",
+	"mwa-finishcreate": "A sua conta foi importada. Pode definir uma senha nova ou escolher \"$1\" para manter a senha atual.",
+	"mwa-unconfiguredtitle": "Extensão não configurada.",
+	"mwa-unconfiguredtext": "A extensão MediaWikiAuth não está devidamente configurada. Certifique-se de que $wgMediaWikiAuthApiUrl está definido no seu LocalSettings.php como o URL da API da wiki remota.",
+	"right-mwa-createlocalaccount": "Criar contas locais com o mesmo nome de utilizador que uma conta externa não importada"
+}
