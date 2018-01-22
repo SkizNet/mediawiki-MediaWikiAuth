@@ -13,6 +13,7 @@ class ExternalWikiPrimaryAuthenticationProvider
 {
 	protected $cookieJar;
 	private $userCache = [];
+	private $pwKey = 'MediaWikiAuth-userpw'; // should be private const, but that's PHP 7.1+
 
 	public function __construct( array $params = [] ) {
 		parent::__construct( $params );
@@ -56,6 +57,10 @@ class ExternalWikiPrimaryAuthenticationProvider
 			return AuthenticationResponse::newAbstain();
 		}
 
+		// Save the user password so we can set it in autoCreatedAccount (otherwise the user has
+		// null credentials unless they go through the optional password change process)
+		$this->manager->setAuthenticationSessionData( $this->pwKey, $req->password );
+
 		// Grab remote MediaWiki version; our auth flow depends on what we get back
 		$resp = $this->apiRequest( 'GET', [
 			'action' => 'query',
@@ -89,6 +94,7 @@ class ExternalWikiPrimaryAuthenticationProvider
 			if ( $resp->login->result !== 'Success' ) {
 				$this->logger->info( 'Authentication against legacy remote API failed for reason ' . $resp->login->result,
 					[ 'remoteVersion' => $remoteVersion, 'caller' => __METHOD__, 'username' => $username ] );
+				$this->manager->removeAuthenticationSessionData( $this->pwKey );
 				return AuthenticationResponse::newFail( wfMessage( 'mwa-authfail' ) );
 			}
 		} else {
@@ -117,6 +123,7 @@ class ExternalWikiPrimaryAuthenticationProvider
 			if ( $resp->clientlogin->status !== 'PASS' ) {
 				$this->logger->info( 'Authentication against modern remote API failed for reason ' . $resp->clientlogin->status,
 					[ 'remoteVersion' => $remoteVersion, 'caller' => __METHOD__, 'username' => $username ] );
+				$this->manager->removeAuthenticationSessionData( $this->pwKey );
 				return AuthenticationResponse::newFail( wfMessage( 'mwa-authfail' ) );
 			}
 		}
@@ -142,6 +149,11 @@ class ExternalWikiPrimaryAuthenticationProvider
 			// this account wasn't created by us, so we have nothing to contribute to it
 			return;
 		}
+
+		// ensure the user can log in even if we don't do secondary password reset
+		$password = $this->manager->getAuthenticationSessionData( $this->pwKey );
+		$this->manager->removeAuthenticationSessionData( $this->pwKey );
+		$user->setPassword( $password );
 
 		// $user->saveChanges() is called automatically after this runs,
 		// so calling it ourselves is not necessary.
