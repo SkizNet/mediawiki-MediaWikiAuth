@@ -9,8 +9,7 @@ use Status;
 use User;
 
 class ExternalWikiPrimaryAuthenticationProvider
-	extends \MediaWiki\Auth\AbstractPasswordPrimaryAuthenticationProvider
-{
+	extends \MediaWiki\Auth\AbstractPasswordPrimaryAuthenticationProvider {
 	protected $cookieJar;
 	private $userCache = [];
 	private $pwKey = 'MediaWikiAuth-userpw'; // should be private const, but that's PHP 7.1+
@@ -42,18 +41,37 @@ class ExternalWikiPrimaryAuthenticationProvider
 			return AuthenticationResponse::newAbstain();
 		}
 
-		// Check if the user exists on the local wiki. If so, do not attempt to auth against the remote one.
-		// if $existingUser is false, that means username validation failed so we won't be able to auth with
-		// this name anyway once the account does exist.
+		// Get an existing local user for this username. Depending on config,
+		// we either block auth if a local user exists, or only allow auth against
+		// local users (with currently-invalid passwords)
 		$existingUser = User::newFromName( $req->username, 'usable' );
-		if ( $existingUser === false || $existingUser->getId() !== 0 ) {
+		$username = $existingUser->getName();
+
+		// if $existingUser is false, the username is invalid
+		if ( $existingUser === false ) {
 			return AuthenticationResponse::newAbstain();
 		}
 
-		$username = $existingUser->getName();
+		if ( $this->config->get( 'MediaWikiAuthDisableAccountCreation' ) ) {
+			// Only perform account import on already-existing local accounts,
+			// instead of letting the extension automatically create users.
+			// For security, we only do an import if the user currently has an invalid password
+			// and is not a system user (system users have invalid tokens and no email).
+			// We can't directly check for invalid tokens, but getToken() returns random results on each
+			// call for system users, so that acts as a good proxy for an invalid token test.
+			if ( $existingUser->getId() === 0
+				|| $this->manager->userCanAuthenticate( $username )
+				|| ( !$existingUser->getEmail() && $existingUser->getToken() !== $existingUser->getToken() )
+			) {
+				return AuthenticationResponse::newAbstain();
+			}
+		} elseif ( $existingUser->getId() !== 0 ) {
+			// user exists and we are set to only create new accounts; don't allow this auth attempt
+			return AuthenticationResponse::newAbstain();
+		}
 
 		// Check for username existence on other wiki
-		if ( !$this->testUserExists( $username ) ) {
+		if ( !$this->testUserExistsRemote( $username ) ) {
 			return AuthenticationResponse::newAbstain();
 		}
 
@@ -323,14 +341,7 @@ class ExternalWikiPrimaryAuthenticationProvider
 		throw new \BadMethodCallException( 'This provider cannot be used for explicit account creation.' );
 	}
 
-	public function testUserExists( $username, $flags = User::READ_NORMAL ) {
-		// sadly we have no other way of getting at the context here
-		$user = \RequestContext::getMain()->getUser();
-		if ( $user->isAllowed( 'mwa-createlocalaccount' ) ) {
-			// bypass remote wiki checks; user can create local accounts
-			return false;
-		}
-
+	public function testUserExistsRemote( $username ) {
 		if ( !isset( $this->userCache[$username] ) ) {
 			$resp = $this->apiRequest( 'GET', [
 				'action' => 'query',
@@ -346,6 +357,17 @@ class ExternalWikiPrimaryAuthenticationProvider
 		}
 
 		return $this->userCache[$username];
+	}
+
+	public function testUserExists( $username, $flags = User::READ_NORMAL ) {
+		// sadly we have no other way of getting at the context here
+		$user = \RequestContext::getMain()->getUser();
+		// bypass remote wiki checks; user can create local accounts
+		if ( $this->config->get( 'MediaWikiAuthDisableAccountCreation' ) || $user->isAllowed( 'mwa-createlocalaccount' ) ) {
+			return false;
+		}
+
+		return $this->testUserExistsRemote( $username );
 	}
 
 	/**
@@ -386,7 +408,7 @@ class ExternalWikiPrimaryAuthenticationProvider
 
 			if ( $content === null ) {
 				// invalid JSON response, which means this isn't a valid API endpoint
-				$logger = \LoggerFactory::getInstance( 'http' );
+				$logger = \MediaWiki\Logger\LoggerFactory::getInstance( 'http' );
 				$logger->error( 'Unable to parse JSON response from API endpoint: ' . json_last_error_msg(),
 					[ 'endpoint' => $apiUrl, 'caller' => __METHOD__, 'content' => $req->getContent()] );
 				throw new \ErrorPageError( 'mwa-unconfiguredtitle', 'mwa-unconfiguredtext' );
@@ -397,7 +419,7 @@ class ExternalWikiPrimaryAuthenticationProvider
 			return $content;
 		} else {
 			$errors = $status->getErrorsByType( 'error' );
-			$logger = \LoggerFactory::getInstance( 'http' );
+			$logger = \MediaWiki\Logger\LoggerFactory::getInstance( 'http' );
 			$logger->error( \Status::wrap( $status )->getWikiText( false, false, 'en' ),
 				[ 'error' => $errors, 'caller' => __METHOD__, 'content' => $req->getContent() ] );
 
