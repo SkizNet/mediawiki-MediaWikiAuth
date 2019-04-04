@@ -4,6 +4,11 @@
 			"Joetaras"
 		]
 	},
+	"mwa-desc": "Autendiche le accesse e le 'mborte da 'n'istanze de MediaUicchi de fore",
 	"mwa-error-unknown": "Errore scanusciune quanne agghie trasute jndr'à 'na uicchi remote.",
-	"mwa-unconfiguredtitle": "Estenzione non configurate."
+	"mwa-authfail": "'Mbossibbele trasè jndr'à uicchi remote pe 'mbortà 'u cunde tune. Condrolle ce ste ause 'a passuord satta.",
+	"mwa-finishcreate": "'U cunde tune ha state 'mbortate. Puè 'mbostà 'na passuord nove o scacchià \"$1\" pe mandenè quedde de mò.",
+	"mwa-unconfiguredtitle": "Estenzione non configurate.",
+	"mwa-unconfiguredtext": "L'estenzione MediaUicchiAuth non g'è configurate bbone. Statte secure ca $wgMediaWikiAuthApiUrl ste 0mbostate jndr'à 'u file LocalSettings.php a l'URL de l'API sus 'a uicchi remote.",
+	"right-mwa-createlocalaccount": "Ccreje cunde locale cu 'u stesse nome de l'utende cumme cunde non 'mbortate de fore"
 }
