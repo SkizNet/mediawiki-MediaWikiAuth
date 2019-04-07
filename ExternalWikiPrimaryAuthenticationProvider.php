@@ -454,9 +454,22 @@ class ExternalWikiPrimaryAuthenticationProvider
 	}
 
 	protected function getPasswordResetData( $username, $data ) {
-		return (object)[
-			'msg' => wfMessage( 'mwa-finishcreate', wfMessage( 'authprovider-resetpass-skip-label' )->text() ),
-			'hard' => false
-		];
+		if ( $this->config->get( 'MediaWikiAuthDisableAccountCreation' ) ) {
+			// In this case, an account exists locally with an invalid password.
+			// The user must reset their password to something valid or
+			// they will be unable to log in, and it'll try to fire off another import.
+			return (object)[
+				'msg' => wfMessage( 'mwa-finishimport-nocreate' ),
+				'hard' => true
+			];
+		} else {
+			// Don't require a password reset if we created an account on a user's behalf,
+			// as our account creation code gives them the same password they used to log into the remote wiki.
+			// We offer them an opportunity to change it, however, as password re-use is bad.
+			return (object)[
+				'msg' => wfMessage( 'mwa-finishcreate', wfMessage( 'authprovider-resetpass-skip-label' )->text() ),
+				'hard' => false
+			];
+		}
 	}
 }
