@@ -11,5 +11,6 @@
 	"mwa-finishcreate": "Your account has been successfully imported. You may set a new password now or choose \"$1\" to keep your current password.",
 	"mwa-unconfiguredtitle": "Extension not configured.",
 	"mwa-unconfiguredtext": "The MediaWikiAuth extension is not configured properly. Ensure that $wgMediaWikiAuthApiUrl is set in your LocalSettings.php to the API URL of the remote wiki.",
+	"action-mwa-createlocalaccount": "create local accounts with the same username as an unimported external account",
 	"right-mwa-createlocalaccount": "Create local accounts with the same username as an unimported external account"
 }
