@@ -11,5 +11,6 @@
 	"mwa-finishcreate": "تم استيراد حسابك بنجاح; يمكنك تعيين كلمة سر جديدة الآن أو اختيار \"$1\" للاحتفاظ بكلمة السر الحالية.",
 	"mwa-unconfiguredtitle": "ملحق غير مكون.",
 	"mwa-unconfiguredtext": "لم يتم تكوين إضافة MediaWikiAuth ; تأكد من تعيين $wgMediaWikiAuthApiUrl في LocalSettings.php الخاص بك إلى مسار API الويكي البعيد.",
+	"action-mwa-createlocalaccount": "إنشاء حسابات محلية بنفس اسم المستخدم كحساب خارجي غير مستورد",
 	"right-mwa-createlocalaccount": "إنشاء حسابات محلية بنفس اسم المستخدم كحساب خارجي غير مستورد"
 }
