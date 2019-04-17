@@ -4,6 +4,7 @@
 	"mwa-error-unknown": "Used as generic error message on account creation",
 	"mwa-authfail": "Used as an error message to indicate the user was unable to log into the remote wiki, perhaps because they are using the wrong password.",
 	"mwa-finishcreate": "Used as a success message that an account was imported, and is displayed above a field that lets the user change their password. $1 is the label of the Skip button so that the user can keep the same password.",
+	"mwa-finishimport-nocreate": "Used as a success message that an account was imported, and is displayed above a field that requires the user to change their password. Used instead of mwa-finishcreate when we cannot allow them to hit 'skip' for technical reasons.",
 	"mwa-unconfiguredtitle": "Used as the page title on the error page when the extension is not configured",
 	"mwa-unconfiguredtext": "Used as the page text on the error page when the extension is not configured. $wgMediaWikiAuthApiUrl is a PHP variable name and must be preserved as-is; do not translate or modify it.",
 	"action-mwa-createlocalaccount": "{{doc-action|mwa-createlocalaccount}}\nRight which allows the user to create a local account even if an importable account exists remotely.",
