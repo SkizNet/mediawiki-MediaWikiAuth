@@ -434,7 +434,7 @@ class ExternalWikiPrimaryAuthenticationProvider
 	}
 
 	public function providerAllowsPropertyChange( $property ) {
-		return false;
+		return true;
 	}
 
 	public function providerAllowsAuthenticationDataChange(
