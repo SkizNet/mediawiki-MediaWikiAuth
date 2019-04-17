@@ -8,7 +8,9 @@
 	"mwa-error-unknown": "Beim Anmelden am Remote-Wiki ist ein unbekannter Fehler aufgetreten.",
 	"mwa-authfail": "Die Anmeldung am Remote-Wiki zum Importieren deines Benutzerkontos war nicht erfolgreich. Stelle sicher, dass du das richtige Passwort verwendest.",
 	"mwa-finishcreate": "Dein Benutzerkonto wurde erfolgreich importiert. Du kannst jetzt ein neues Passwort festlegen oder „$1“ auswählen, um dein aktuelles Passwort zu behalten.",
+	"mwa-finishimport-nocreate": "Dein Benutzerkonto wurde erfolgreich importiert. Lege bitte für eine bessere Sicherheit ein neues Passwort fest.",
 	"mwa-unconfiguredtitle": "Die Softwareerweiterung ist nicht konfiguriert.",
 	"mwa-unconfiguredtext": "Die MediaWikiAuth-Softwareerweiterung ist nicht ordnungsgemäß konfiguriert. Stelle sicher, dass im Konfigurationsparameter $wgMediaWikiAuthApiUrl in deiner Datei LocalSettings.php die API-URL des Remote-Wikis festgelegt ist.",
+	"action-mwa-createlocalaccount": "lokale Benutzerkonten mit den gleichen Benutzernamen als nicht importierte externe Benutzerkonten zu erstellen",
 	"right-mwa-createlocalaccount": "Lokale Benutzerkonten mit dem gleichen Benutzernamen als nicht importiertes externes Benutzerkonto erstellen"
 }
