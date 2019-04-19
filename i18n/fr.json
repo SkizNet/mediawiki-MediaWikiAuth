@@ -9,6 +9,7 @@
 	"mwa-error-unknown": "Erreur inconnue en se connectant au wiki distant",
 	"mwa-authfail": "Impossible de se connecter au wiki distant pour importer votre compte. Assurez-vous d’utiliser le bon mot de passe.",
 	"mwa-finishcreate": "Votre compte a bien été importé. Vous pouvez définir un nouveau mot de passe maintenant, ou choisir « $1 » pour conserver l’actuel.",
+	"mwa-finishimport-nocreate": "Votre compte a bien été importé. Veuillez définir un nouveau mot de passe pour une meilleure sécurité.",
 	"mwa-unconfiguredtitle": "Extension non configurée.",
 	"mwa-unconfiguredtext": "L’extension MediaWikiAuth n’est pas bien configurée. Assurez-vous que $wgMediaWikiAuthApiUrl est défini dans votre LocalSettings.php avec l’URL de l’API du wiki distant.",
 	"action-mwa-createlocalaccount": "créer les comptes locaux avec le même nom d’utilisateur que les comptes externes non importés",

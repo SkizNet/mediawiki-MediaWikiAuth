@@ -8,7 +8,9 @@
 	"mwa-error-unknown": "當登入至遠端 wiki 時出現未知錯誤。",
 	"mwa-authfail": "無法登入至遠端 wiki 來匯入您的帳號。請確定您有使用正確的密碼。",
 	"mwa-finishcreate": "您的帳號已成功匯入。您現在可以設定新密碼，或是選擇「$1」來繼續使用您目前的密碼。",
+	"mwa-finishimport-nocreate": "您的帳號已成功匯入，請設定新密碼來確保安全。",
 	"mwa-unconfiguredtitle": "擴充功能未設置。",
 	"mwa-unconfiguredtext": "MediaWikiAuth 擴充功能尚未正確設置。請確定在您的 LocalSettings.php 中 $wgMediaWikiAuthApiUrl 有設定成是遠端 wiki 的 API URL。",
+	"action-mwa-createlocalaccount": "建立與未匯入外部帳號相同使用者名稱的本地帳號",
 	"right-mwa-createlocalaccount": "建立與未匯入外部帳號相同使用者名稱的本地帳號"
 }
