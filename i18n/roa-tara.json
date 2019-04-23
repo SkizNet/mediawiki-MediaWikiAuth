@@ -8,6 +8,7 @@
 	"mwa-error-unknown": "Errore scanusciune quanne agghie trasute jndr'à 'na uicchi remote.",
 	"mwa-authfail": "'Mbossibbele trasè jndr'à uicchi remote pe 'mbortà 'u cunde tune. Condrolle ce ste ause 'a passuord satta.",
 	"mwa-finishcreate": "'U cunde tune ha state 'mbortate. Puè 'mbostà 'na passuord nove o scacchià \"$1\" pe mandenè quedde de mò.",
+	"mwa-finishimport-nocreate": "'U cunde tune ha state 'mbortate. Pe piacere 'mboste 'na passuord nove pe maggiore securezze.",
 	"mwa-unconfiguredtitle": "Estenzione non configurate.",
 	"mwa-unconfiguredtext": "L'estenzione MediaUicchiAuth non g'è configurate bbone. Statte secure ca $wgMediaWikiAuthApiUrl ste 0mbostate jndr'à 'u file LocalSettings.php a l'URL de l'API sus 'a uicchi remote.",
 	"action-mwa-createlocalaccount": "ccreje cunde locale cu 'u stesse nome de l'utende cumme cunde non 'mbortate de fore",

@@ -8,6 +8,7 @@
 	"mwa-error-unknown": "Okänt fel inträffade under inloggning på fjärrwikin.",
 	"mwa-authfail": "Kunde inte logga in på fjärrwikin för att importera ditt konto. Se till att du har rätt lösenord.",
 	"mwa-finishcreate": "Ditt konto har importerats. Du kan ange ett nytt lösenord nu eller välja \"$1\" för att behålla ditt nuvarande lösenord.",
+	"mwa-finishimport-nocreate": "Ditt konto har importerats. Ange ett nytt lösenord för bättre säkerhet.",
 	"mwa-unconfiguredtitle": "Tillägget är inte konfigurerat.",
 	"mwa-unconfiguredtext": "Tillägget MediaWikiAuth är inte riktigt konfigurerat. Se till att $wgMediaWikiAuthApiUrl är angivet i din LocalSettings.php till API-addressen för fjärrwikin.",
 	"right-mwa-createlocalaccount": "Skapa lokala konton med samma användarnamn som ett oimporterat externt konto."
