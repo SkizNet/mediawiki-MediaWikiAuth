@@ -24,6 +24,7 @@ class ReattributeImportedEdits extends \Maintenance {
 			false, // not required
 			true // requires argument
 		);
+		$this->requireExtension( 'MediaWikiAuth' );
 	}
 
 	public function execute() {
