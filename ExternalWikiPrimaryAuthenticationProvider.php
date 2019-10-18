@@ -2,14 +2,25 @@
 
 namespace MediaWikiAuth;
 
+use BadMethodCallException;
+use CookieJar;
+use ErrorPageError;
+use Http;
+use JobQueueGroup;
+use MediaWiki\Auth\AbstractPasswordPrimaryAuthenticationProvider;
 use MediaWiki\Auth\AuthenticationRequest;
 use MediaWiki\Auth\AuthenticationResponse;
 use MediaWiki\Auth\PasswordAuthenticationRequest;
+use MediaWiki\Logger\LoggerFactory;
+use MediaWiki\MediaWikiServices;
+use MWDebug;
+use RequestContext;
+use Skin;
 use Status;
 use User;
 
 class ExternalWikiPrimaryAuthenticationProvider
-	extends \MediaWiki\Auth\AbstractPasswordPrimaryAuthenticationProvider {
+	extends AbstractPasswordPrimaryAuthenticationProvider {
 	protected $cookieJar;
 	private $userCache = [];
 	private $pwKey = 'MediaWikiAuth-userpw'; // should be private const, but that's PHP 7.1+
@@ -17,7 +28,7 @@ class ExternalWikiPrimaryAuthenticationProvider
 	public function __construct( array $params = [] ) {
 		parent::__construct( $params );
 
-		$this->cookieJar = new \CookieJar();
+		$this->cookieJar = new CookieJar();
 	}
 
 	/**
@@ -30,8 +41,13 @@ class ExternalWikiPrimaryAuthenticationProvider
 	 *
 	 * Once the user successfully authenticates, we import their Preferences and Watchlist from
 	 * the remote wiki and prompt them to change their password.
+	 *
+	 * @param array $reqs
+	 * @return AuthenticationResponse
+	 * @throws ErrorPageError
 	 */
 	public function beginPrimaryAuthentication( array $reqs ) {
+		/** @var PasswordAuthenticationRequest $req */
 		$req = AuthenticationRequest::getRequestByClass( $reqs, PasswordAuthenticationRequest::class );
 		if ( !$req ) {
 			return AuthenticationResponse::newAbstain();
@@ -161,6 +177,8 @@ class ExternalWikiPrimaryAuthenticationProvider
 	 * @param User $user
 	 * @param string $source
 	 * @return void
+	 * @throws ErrorPageError
+	 * @throws \PasswordError
 	 */
 	public function autoCreatedAccount( $user, $source ) {
 		if ( $source !== __CLASS__ ) {
@@ -263,7 +281,7 @@ class ExternalWikiPrimaryAuthenticationProvider
 		}
 
 		if ( $jobs !== [] ) {
-			\JobQueueGroup::singleton()->push( $jobs );
+			JobQueueGroup::singleton()->push( $jobs );
 		}
 
 		// groupmemberships contains groups and expiries, but is only present in recent versions of MW. Fall back to groups if it doesn't exist.
@@ -304,7 +322,7 @@ class ExternalWikiPrimaryAuthenticationProvider
 		}
 
 		$validOptions = $user->getOptions();
-		$validSkins = array_keys( \Skin::getAllowedSkins() );
+		$validSkins = array_keys( Skin::getAllowedSkins() );
 		$optionBlacklist = [ 'watchlisttoken' ];
 
 		foreach ( $userInfo->query->userinfo->options as $option => $value ) {
@@ -334,11 +352,11 @@ class ExternalWikiPrimaryAuthenticationProvider
 	}
 
 	public function beginPrimaryAccountCreation( $user, $creator, array $reqs ) {
-		throw new \BadMethodCallException( 'This provider cannot be used for explicit account creation.' );
+		throw new BadMethodCallException( 'This provider cannot be used for explicit account creation.' );
 	}
 
 	public function finishAccountCreation( $user, $creator, AuthenticationResponse $response ) {
-		throw new \BadMethodCallException( 'This provider cannot be used for explicit account creation.' );
+		throw new BadMethodCallException( 'This provider cannot be used for explicit account creation.' );
 	}
 
 	public function testUserExistsRemote( $username ) {
@@ -361,7 +379,7 @@ class ExternalWikiPrimaryAuthenticationProvider
 
 	public function testUserExists( $username, $flags = User::READ_NORMAL ) {
 		// sadly we have no other way of getting at the context here
-		$user = \RequestContext::getMain()->getUser();
+		$user = RequestContext::getMain()->getUser();
 		// bypass remote wiki checks; user can create local accounts
 		if ( $this->config->get( 'MediaWikiAuthDisableAccountCreation' ) || $user->isAllowed( 'mwa-createlocalaccount' ) ) {
 			return false;
@@ -378,12 +396,13 @@ class ExternalWikiPrimaryAuthenticationProvider
 	 * @param array $postData POST data
 	 * @param string $caller Caller of this method for logging purposes
 	 * @return object The parsed JSON result of the request
+	 * @throws ErrorPageError
 	 */
 	protected function apiRequest( $method, array $params, array $postData = [], $caller = __METHOD__ ) {
 		$baseUrl = $this->config->get( 'MediaWikiAuthApiUrl' );
 
 		if ( !$baseUrl ) {
-			throw new \ErrorPageError( 'mwa-unconfiguredtitle', 'mwa-unconfiguredtext' );
+			throw new ErrorPageError( 'mwa-unconfiguredtitle', 'mwa-unconfiguredtext' );
 		}
 
 		$params['format'] = 'json';
@@ -394,37 +413,43 @@ class ExternalWikiPrimaryAuthenticationProvider
 			$options['postData'] = $postData;
 		}
 
-		\MWDebug::log( "API Request: $method $apiUrl" );
+		MWDebug::log( "API Request: $method $apiUrl" );
 		if ( $method === 'POST' ) {
-			\MWDebug::log( 'POST data: ' . json_encode( $postData ) );
+			MWDebug::log( 'POST data: ' . json_encode( $postData ) );
 		}
 
-		$req = \MWHttpRequest::factory( $apiUrl, $options, __METHOD__ );
+		// MW's implementation of Guzzle as of 1.34 doesn't support cookies
+		// TODO: get a fix merged into core and do a proper version check once that happens
+		$prevEngine = Http::$httpEngine;
+		Http::$httpEngine = 'curl';
+		$reqFactory = MediaWikiServices::getInstance()->getHttpRequestFactory();
+		$req = $reqFactory->create( $apiUrl, $options, $caller );
 		$req->setCookieJar( $this->cookieJar );
 		$status = $req->execute();
+		Http::$httpEngine = $prevEngine; // reset it back to how it was before in case other code needs it
 
 		if ( $status->isOK() ) {
 			$content = json_decode( $req->getContent() );
 
 			if ( $content === null ) {
 				// invalid JSON response, which means this isn't a valid API endpoint
-				$logger = \MediaWiki\Logger\LoggerFactory::getInstance( 'http' );
+				$logger = LoggerFactory::getInstance( 'http' );
 				$logger->error( 'Unable to parse JSON response from API endpoint: ' . json_last_error_msg(),
-					[ 'endpoint' => $apiUrl, 'caller' => __METHOD__, 'content' => $req->getContent()] );
-				throw new \ErrorPageError( 'mwa-unconfiguredtitle', 'mwa-unconfiguredtext' );
+					[ 'endpoint' => $apiUrl, 'caller' => $caller, 'content' => $req->getContent()] );
+				throw new ErrorPageError( 'mwa-unconfiguredtitle', 'mwa-unconfiguredtext' );
 			}
 
-			\MWDebug::log( 'API Response: ' . $req->getContent() );
+			MWDebug::log( 'API Response: ' . $req->getContent() );
 
 			return $content;
 		} else {
 			$errors = $status->getErrorsByType( 'error' );
-			$logger = \MediaWiki\Logger\LoggerFactory::getInstance( 'http' );
-			$logger->error( \Status::wrap( $status )->getWikiText( false, false, 'en' ),
-				[ 'error' => $errors, 'caller' => __METHOD__, 'content' => $req->getContent() ] );
+			$logger = LoggerFactory::getInstance( 'http' );
+			$logger->error( Status::wrap( $status )->getWikiText( false, false, 'en' ),
+				[ 'error' => $errors, 'caller' => $caller, 'content' => $req->getContent() ] );
 
 			// Might not be entirely accurate, as the error might be on the remote side...
-			throw new \ErrorPageError( 'mwa-unconfiguredtitle', 'mwa-unconfiguredtext' );
+			throw new ErrorPageError( 'mwa-unconfiguredtitle', 'mwa-unconfiguredtext' );
 		}
 	}
 

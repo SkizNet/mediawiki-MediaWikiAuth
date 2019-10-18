@@ -2,6 +2,7 @@
 
 namespace MediaWikiAuth;
 
+use BadMethodCallException;
 use Title;
 use User;
 
@@ -10,7 +11,7 @@ class PopulateImportedWatchlistJob extends \Job {
 	 * Construct a new watchlist import job.
 	 *
 	 * @param $title Title unused
-	 * @param $params Array of the format [
+	 * @param $params array Array of the format [
 	 *     'username' => string username of the user whose watchlist is being modified
 	 *     'pages' => array of objects to add to the watchlist. The objects have an 'ns', 'title', and sometimes 'changed'
 	 *                (ns is an int, title is the prefixed page name, changed is a datetime string)
@@ -23,7 +24,7 @@ class PopulateImportedWatchlistJob extends \Job {
 	public function run() {
 		$user = User::newFromName( $this->params['username'] );
 		if ( $user === null || $user->getId() === 0 ) {
-			throw new \BadMethodCallException( "Attempting to import watchlist pages for nonexistent user {$this->params['username']}." );
+			throw new BadMethodCallException( "Attempting to import watchlist pages for nonexistent user {$this->params['username']}." );
 		}
 
 		foreach ( $this->params['pages'] as $page ) {

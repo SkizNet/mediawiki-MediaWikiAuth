@@ -2,6 +2,7 @@
 
 namespace MediaWikiAuth;
 
+use Title;
 use User;
 
 class ReattributeImportedEditsJob extends \Job {
@@ -9,7 +10,7 @@ class ReattributeImportedEditsJob extends \Job {
 	 * Construct a new edit reattribution job.
 	 *
 	 * @param $title Title unused
-	 * @param $params Array of the format [
+	 * @param $params array Array of the format [
 	 *     'username' => string username of the user whose edits we are reattributing
 	 *     'id_start' => mixed id of the revision/log we're starting at to reattribute
 	 *     'id_end' => mixed id of the revision/log we're ending at (inclusive)
