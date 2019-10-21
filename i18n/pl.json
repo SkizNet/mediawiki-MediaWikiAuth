@@ -1,8 +1,14 @@
 {
 	"@metadata": {
 		"authors": [
-			"Chrumps"
+			"Chrumps",
+			"Ostrzyciel"
 		]
 	},
+	"mwa-desc": "Przeprowadza zdalne uwierzytelnienie i importuje konta z zewnętrznej instancji MediaWiki",
+	"mwa-error-unknown": "Podczas logowania do zdalnej wiki wystąpił nieznany błąd.",
+	"mwa-authfail": "Nie udało się zalogować do zdalnej wiki, by zaimportować twoje konto. Upewnij się, że korzystasz z prawidłowego hasła.",
+	"mwa-finishcreate": "Twoje konto zostało pomyślnie zaimportowane. Możesz teraz zmienić swoje hasło, lub kliknąć „$1”, by zachować obecne hasło.",
+	"mwa-finishimport-nocreate": "Twoje konto zostało pomyślnie zaimportowane. Ustaw teraz nowe hasło dla niego w celu zapewnienia lepszego bezpieczeństwa.",
 	"mwa-unconfiguredtitle": "Rozszerzenie nie jest skonfigurowane."
 }
