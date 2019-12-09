@@ -1,0 +1,16 @@
+{
+	"@metadata": {
+		"authors": [
+			"BaRaN6161 TURK"
+		]
+	},
+	"mwa-desc": "Harici bir MediaWiki örneğinden girişleri doğrular ve girişleri doğrular",
+	"mwa-error-unknown": "Uzak wikiye giriş yaparken bilinmeyen hata.",
+	"mwa-authfail": "Hesabınızı almak için uzak wikiye giriş yapamıyor. Doğru şifreyi kullandığınızdan emin olun.",
+	"mwa-finishcreate": "Hesabınız başarıyla içe aktarıldı. Şimdi yeni bir şifre belirleyebilir veya mevcut şifrenizi korumak için \"$1\" seçeneğini seçebilirsiniz.",
+	"mwa-finishimport-nocreate": "Hesabınız başarıyla içe aktarıldı. Lütfen daha iyi güvenlik için yeni bir şifre belirleyin.",
+	"mwa-unconfiguredtitle": "Uzantı yapılandırılmadı.",
+	"mwa-unconfiguredtext": "MediaWikiAuth uzantısı doğru şekilde yapılandırılmamış. $WgMediaWikiAuthApiUrl öğesinin LocalSettings.php dosyasında uzak wikinin API URL'sine ayarlandığından emin olun.",
+	"action-mwa-createlocalaccount": "desteklenmeyen bir dış hesapla aynı kullanıcı adına sahip yerel hesaplar oluşturun",
+	"right-mwa-createlocalaccount": "Desteklenmeyen bir dış hesapla aynı kullanıcı adına sahip yerel hesaplar oluşturun"
+}
