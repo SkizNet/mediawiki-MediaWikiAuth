@@ -17,13 +17,13 @@ use MWDebug;
 use RequestContext;
 use Skin;
 use Status;
+use Title;
 use User;
 
-class ExternalWikiPrimaryAuthenticationProvider
-	extends AbstractPasswordPrimaryAuthenticationProvider {
+class ExternalWikiPrimaryAuthenticationProvider	extends AbstractPasswordPrimaryAuthenticationProvider {
 	protected $cookieJar;
 	private $userCache = [];
-	private $pwKey = 'MediaWikiAuth-userpw'; // should be private const, but that's PHP 7.1+
+	private const pwKey = 'MediaWikiAuth-userpw';
 
 	public function __construct( array $params = [] ) {
 		parent::__construct( $params );
@@ -93,7 +93,7 @@ class ExternalWikiPrimaryAuthenticationProvider
 
 		// Save the user password so we can set it in autoCreatedAccount (otherwise the user has
 		// null credentials unless they go through the optional password change process)
-		$this->manager->setAuthenticationSessionData( $this->pwKey, $req->password );
+		$this->manager->setAuthenticationSessionData( self::pwKey, $req->password );
 
 		// Grab remote MediaWiki version; our auth flow depends on what we get back
 		$resp = $this->apiRequest( 'GET', [
@@ -128,7 +128,7 @@ class ExternalWikiPrimaryAuthenticationProvider
 			if ( $resp->login->result !== 'Success' ) {
 				$this->logger->info( 'Authentication against legacy remote API failed for reason ' . $resp->login->result,
 					[ 'remoteVersion' => $remoteVersion, 'caller' => __METHOD__, 'username' => $username ] );
-				$this->manager->removeAuthenticationSessionData( $this->pwKey );
+				$this->manager->removeAuthenticationSessionData( self::pwKey );
 				return AuthenticationResponse::newFail( wfMessage( 'mwa-authfail' ) );
 			}
 		} else {
@@ -157,7 +157,7 @@ class ExternalWikiPrimaryAuthenticationProvider
 			if ( $resp->clientlogin->status !== 'PASS' ) {
 				$this->logger->info( 'Authentication against modern remote API failed for reason ' . $resp->clientlogin->status,
 					[ 'remoteVersion' => $remoteVersion, 'caller' => __METHOD__, 'username' => $username ] );
-				$this->manager->removeAuthenticationSessionData( $this->pwKey );
+				$this->manager->removeAuthenticationSessionData( self::pwKey );
 				return AuthenticationResponse::newFail( wfMessage( 'mwa-authfail' ) );
 			}
 		}
@@ -187,8 +187,8 @@ class ExternalWikiPrimaryAuthenticationProvider
 		}
 
 		// ensure the user can log in even if we don't do secondary password reset
-		$password = $this->manager->getAuthenticationSessionData( $this->pwKey );
-		$this->manager->removeAuthenticationSessionData( $this->pwKey );
+		$password = $this->manager->getAuthenticationSessionData( self::pwKey );
+		$this->manager->removeAuthenticationSessionData( self::pwKey );
 		$user->setPassword( $password );
 
 		// $user->saveChanges() is called automatically after this runs,
@@ -209,13 +209,8 @@ class ExternalWikiPrimaryAuthenticationProvider
 
 		$watchlist = [];
 		$pagesPerJob = (int)$this->config->get( 'UpdateRowsPerJob' );
-		if ( $pagesPerJob < 100 ) {
-			$this->logger->warning( '$wgUpdateRowsPerJob is set to less than 100; performing jobs in batches of 100 instead.' );
-			$pagesPerJob = 100;
-		}
 
 		$dbw = wfGetDB( DB_MASTER );
-		$dbr = wfGetDB( DB_REPLICA );
 		$jobs = [];
 		$title = $user->getUserPage(); // not used by us, but Job constructor needs a valid Title
 
@@ -241,43 +236,7 @@ class ExternalWikiPrimaryAuthenticationProvider
 		}
 
 		if ( $this->config->get( 'MediaWikiAuthReattributeEdits' ) ) {
-			foreach ( ReattributeImportedEdits::getTableMetadata() as $table => $metadata ) {
-				$idKey = $metadata[0];
-
-				foreach ( $metadata[1] as $nameKey => $fields ) {
-					$idEnd = true; // so next loop doesn't terminate immediately
-
-					for ( $offset = 0; $idEnd !== false; $offset += $pagesPerJob ) {
-						// this is being thrown in the job queue anyway, so up-to-date data isn't required
-						// any newly-imported revs/logs will see our new user and attribute properly anyway
-						$idStart = $dbr->selectField(
-							$table,
-							$idKey,
-							'', // no WHERE clause
-							__METHOD__ . ':idStart',
-							[ 'ORDER BY' => $idKey, 'OFFSET' => $offset ]
-						);
-
-						$idEnd = $dbr->selectField(
-							$table,
-							$idKey,
-							'', // no WHERE clause
-							__METHOD__ . ':idEnd',
-							[ 'ORDER BY' => $idKey, 'OFFSET' => $offset + $pagesPerJob - 1 ]
-						);
-
-						$jobs[] = new ReattributeImportedEditsJob( $title, [
-							'username' => $user->getName(),
-							'id_start' => $idStart,
-							'id_end' => $idEnd,
-							'table' => $table,
-							'idkey' => $idKey,
-							'namekey' => $nameKey,
-							'fields' => $fields
-						] );
-					}
-				}
-			}
+			$this->addReattributeEditsJobs( $title, $user, $jobs );
 		}
 
 		if ( $jobs !== [] ) {
@@ -349,6 +308,114 @@ class ExternalWikiPrimaryAuthenticationProvider
 			[ 'user_id' => $user->getId() ],
 			__METHOD__
 		);
+	}
+
+	private function addReattributeEditsJobs( Title $title, User $user, array &$jobs ) {
+		$actor = ReattributeEdits::useActorSchema( $this->config );
+		$dbr = wfGetDB( DB_REPLICA );
+		$pagesPerJob = (int)$this->config->get( 'UpdateRowsPerJob' );
+
+		foreach ( ReattributeEdits::getTableMetadata() as $table => $metadata ) {
+			[ $tableKey, $actorKey, $userText, $userKey ] = $metadata;
+
+			// determine which records need to be updated
+			if ( $actor ) {
+				$data = ReattributeEdits::getActorMigrationData( $dbr, $user->getName() );
+				if ( $data === [] ) {
+					// nothing to reattribute
+					return;
+				}
+
+				$res = $dbr->select(
+					$table,
+					$tableKey,
+					[ $actorKey => array_keys( $data ) ],
+					__METHOD__ . ':populateJobs'
+				);
+			} else {
+				$res = $dbr->select(
+					$table,
+					$tableKey,
+					[ $userText => $user->getName(), $userKey => 0 ],
+					__METHOD__ . ':populateJobs'
+				);
+			}
+
+			// generate our jobs, in appropriate batch sizes
+			$counter = 0;
+			$ids = [];
+			foreach ( $res as $row ) {
+				$counter++;
+				$ids[] = $row[$tableKey];
+
+				if ( $counter === $pagesPerJob ) {
+					$jobs[] = new ReattributeImportedEditsJob( $title, [
+						'username' => $user->getName(),
+						'table' => $table,
+						'actor' => $actor,
+						'ids' => $ids
+					] );
+					$counter = 0;
+					$ids = [];
+				}
+			}
+
+			if ( $counter > 0 ) {
+				$jobs[] = new ReattributeImportedEditsJob( $title, [
+					'username' => $user->getName(),
+					'table' => $table,
+					'actor' => $actor,
+					'ids' => $ids
+				] );
+			}
+		}
+
+		// handle log_search table specially since it doesn't conform to the other tables we update
+		if ( $actor ) {
+			$data = ReattributeEdits::getActorMigrationData( $dbr, $user->getName() );
+			$res = $dbr->select(
+				'log_search',
+				'ls_log_id',
+				[ 'ls_type' => 'target_author_actor', 'ls_value' => array_keys( $data ) ],
+				__METHOD__ . ':populateJobs',
+				[ 'DISTINCT' ]
+			);
+		} else {
+			$res = $dbr->select(
+				'log_search',
+				'ls_log_id',
+				[ 'ls_type' => 'target_author_ip', 'ls_value' => $user->getName() ],
+				__METHOD__ . ':populateJobs',
+				[ 'DISTINCT' ]
+			);
+		}
+
+		$counter = 0;
+		$ids = [];
+		foreach ( $res as $row ) {
+			$counter++;
+			$ids[] = $row['ls_log_id'];
+
+			if ( $counter === $pagesPerJob ) {
+				$jobs[] = new ReattributeImportedEditsJob( $title, [
+					'username' => $user->getName(),
+					'table' => 'log_search',
+					'actor' => $actor,
+					'ids' => $ids
+				] );
+				$counter = 0;
+				$ids = [];
+			}
+		}
+
+		if ( $counter > 0 ) {
+			$jobs[] = new ReattributeImportedEditsJob( $title, [
+				'username' => $user->getName(),
+				'table' => 'log_search',
+				'actor' => $actor,
+				'ids' => $ids
+			] );
+		}
 	}
 
 	public function beginPrimaryAccountCreation( $user, $creator, array $reqs ) {

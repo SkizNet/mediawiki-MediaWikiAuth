@@ -2,22 +2,21 @@
 
 namespace MediaWikiAuth;
 
+use BadMethodCallException;
+use Job;
 use Title;
 use User;
 
-class ReattributeImportedEditsJob extends \Job {
+class ReattributeImportedEditsJob extends Job {
 	/**
 	 * Construct a new edit reattribution job.
 	 *
 	 * @param $title Title unused
 	 * @param $params array Array of the format [
 	 *     'username' => string username of the user whose edits we are reattributing
-	 *     'id_start' => mixed id of the revision/log we're starting at to reattribute
-	 *     'id_end' => mixed id of the revision/log we're ending at (inclusive)
 	 *     'table' => string table name to operate on (without prefix)
-	 *     'idkey' => string field containing table id
-	 *     'namekey' => string field containing username to look up
-	 *     'fields' => array of string fields containing user ids to modify
+	 *     'actor' => boolean whether to update actor ids (true) or old user id/text fields (false)
+	 *     'ids' => array of row ids in the table to update this job
 	 * ]
 	 */
 	public function __construct( $title, $params ) {
@@ -26,28 +25,55 @@ class ReattributeImportedEditsJob extends \Job {
 
 	public function run() {
 		$user = User::newFromName( $this->params['username'] );
-		if ( $user === null || $user->getId() === 0 ) {
-			throw new \BadMethodCallException( "Attempting to reattribute edits for nonexistent user {$this->params['username']}." );
+		if ( $user === false || $user->getId() === 0 ) {
+			throw new BadMethodCallException( "Attempting to reattribute edits for nonexistent user {$this->params['username']}." );
 		}
 
-		$updateFields = array_fill_keys( $this->params['fields'], $user->getId() );
+		if ( $this->params['table'] === 'log_search' ) {
+			// log_search is different enough to need its own logic. It's split into a separate function to avoid
+			// making this one overly complicated.
+			return $this->runLogSearch( $user );
+		}
 
 		$dbw = wfGetDB( DB_MASTER );
-		$conds = [ $this->params['namekey'] => $user->getName() ];
-		$id1 = $dbw->addQuotes( $this->params['id_start'] );
-		$id2 = $dbw->addQuotes( $this->params['id_end'] );
+		[ $tableKey, $actorKey, $userText, $userKey ] = ReattributeEdits::getTableMetadata( $this->params['table'] );
 
-		if ( $this->params['id_start'] === false && $this->params['id_end'] !== false ) {
-			$conds[] = "{$this->params['idkey']} <= {$id2}";
-		} elseif ( $this->params['id_start'] !== false && $this->params['id_end'] === false ) {
-			$conds[] = "{$this->params['idkey']} >= {$id1}";
-		} elseif ( $this->params['id_start'] !== false && $this->params['id_end'] !== false ) {
-			$conds[] = "{$this->params['idkey']} BETWEEN {$id1} AND {$id2}";
+		$setList = [];
+		$conds = [ $tableKey => $this->params['ids'] ];
+
+		if ( $this->params['actor'] ) {
+			[ $oldActor, $newActor ] = ReattributeEdits::getActorMigrationData( $dbw, $user->getName() );
+			$setList[$actorKey] = $newActor;
+			$conds[$actorKey] = $oldActor;
+		} else {
+			$setList[$userKey] = $user->getId();
+			$conds[$userText] = $user->getName();
 		}
 
-		$dbw->update( $this->params['table'], $updateFields, $conds, __METHOD__ );
+		$dbw->update( $this->params['table'], $setList, $conds, __METHOD__ );
 
 		return true;
 	}
 
+	private function runLogSearch( User $user ) {
+		$dbw = wfGetDB( DB_MASTER );
+		$setList = [];
+		$conds = [ 'ls_log_id' => $this->params['ids'] ];
+
+		if ( $this->params['actor'] ) {
+			[ $oldActor, $newActor ] = ReattributeEdits::getActorMigrationData( $dbw, $user->getName() );
+			$setList['ls_value'] = $newActor;
+			$conds['ls_value'] = $oldActor;
+			$conds['ls_type'] = 'target_author_actor';
+		} else {
+			$setList['ls_value'] = $user->getId();
+			$setList['ls_type'] = 'target_author_id';
+			$conds['ls_value'] = $user->getName();
+			$conds['ls_type'] = 'target_author_ip';
+		}
+
+		$dbw->update( $this->params['table'], $setList, $conds, __METHOD__ );
+
+		return true;
+	}
 }

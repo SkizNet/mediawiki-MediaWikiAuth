@@ -1,6 +1,7 @@
 {
 	"name": "MediaWikiAuth",
-	"version": "1.2.1",
+	"namemsg": "mwa-extensionname",
+	"version": "1.3.0",
 	"author": [
 		"Laurence Parry",
 		"Jack Phoenix",
@@ -12,12 +13,42 @@
 	"license-name": "GPL-2.0-or-later",
 	"type": "other",
 	"config": {
-		"MediaWikiAuthAllowPasswordChange": true,
-		"MediaWikiAuthApiUrl": "",
-		"MediaWikiAuthImportGroups": true,
-		"MediaWikiAuthDisableAccountCreation": false,
-		"MediaWikiAuthImportWatchlist": true,
-		"MediaWikiAuthReattributeEdits": true
+		"MediaWikiAuthAllowPasswordChange": {
+			"value": true,
+			"description": "If true, prompts the user to optionally change their password after import.",
+			"decriptionmsg": "mwa-config-allowpasswordchange",
+			"public": true
+		},
+		"MediaWikiAuthApiUrl": {
+			"value": "",
+			"description": "Remote API endpoint to auth against.",
+			"decriptionmsg": "mwa-config-apiurl",
+			"public": false
+		},
+		"MediaWikiAuthImportGroups": {
+			"value": true,
+			"description": "If a boolean, controls whether or not we copy group membership from remote wiki. If an array of strings, we only import the listed groups.",
+			"decriptionmsg": "mwa-config-importgroups",
+			"public": true
+		},
+		"MediaWikiAuthDisableAccountCreation": {
+			"value": false,
+			"description": "If true, assume all relevant users already exist locally but with invalid password hashes. When operating in this mode, watchlist, group imports, and edit reattribution do not happen.",
+			"decriptionmsg": "mwa-config-disableaccountcreation",
+			"public": true
+		},
+		"MediaWikiAuthImportWatchlist": {
+			"value": true,
+			"description": "Import watchlists via job queue",
+			"decriptionmsg": "mwa-config-importwatchlist",
+			"public": true
+		},
+		"MediaWikiAuthReattributeEdits": {
+			"value": true,
+			"description": "Reattribute existing edits by unknown actors via job queue",
+			"decriptionmsg": "mwa-config-reattributeedits",
+			"public": true
+		}
 	},
 	"MessagesDirs": {
 		"MediaWikiAuth": [
@@ -27,6 +58,7 @@
 	"AutoloadClasses": {
 		"MediaWikiAuth\\ExternalWikiPrimaryAuthenticationProvider": "ExternalWikiPrimaryAuthenticationProvider.php",
 		"MediaWikiAuth\\PopulateImportedWatchlistJob": "PopulateImportedWatchlistJob.php",
+		"MediaWikiAuth\\ReattributeEdits": "ReattributeEdits.php",
 		"MediaWikiAuth\\ReattributeImportedEdits": "maintenance/reattributeImportedEdits.php",
 		"MediaWikiAuth\\ReattributeImportedEditsJob": "ReattributeImportedEditsJob.php"
 	},
@@ -46,5 +78,11 @@
 			}
 		}
 	},
-	"manifest_version": 1
+	"requires": {
+		"MediaWiki": ">= 1.31.0",
+		"platform": {
+			"php": ">= 7.1.0"
+		}
+	},
+	"manifest_version": 2
 }

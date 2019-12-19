@@ -1,6 +1,13 @@
 {
 	"@metadata": [],
+	"mwa-extensionname": "{{name}}",
 	"mwa-desc": "{{desc|name=MediaWikiAuth|url=https://www.mediawiki.org/wiki/Extension:MediaWikiAuth}}",
+	"mwa-config-allowpasswordchange": "Description of the configuration variable $wgMediaWikiAuthAllowPasswordChange for [[mw:Extension:MediaWikiAuth|Extension:MediaWikiAuth]].",
+	"mwa-config-apiurl": "Description of the configuration variable $wgMediaWikiAuthApiUrl for [[mw:Extension:MediaWikiAuth|Extension:MediaWikiAuth]].",
+	"mwa-config-importgroups": "Description of the configuration variable $wgMediaWikiAuthImportGroups for [[mw:Extension:MediaWikiAuth|Extension:MediaWikiAuth]].",
+	"mwa-config-disableaccountcreation": "Description of the configuration variable $wgMediaWikiAuthDisableAccountCreation for [[mw:Extension:MediaWikiAuth|Extension:MediaWikiAuth]].",
+	"mwa-config-importwatchlist": "Description of the configuration variable $wgMediaWikiAuthImportWatchlist for [[mw:Extension:MediaWikiAuth|Extension:MediaWikiAuth]].",
+	"mwa-config-reattributeedits": "Description of the configuration variable $wgMediaWikiAuthReattributeEdits for [[mw:Extension:MediaWikiAuth|Extension:MediaWikiAuth]].",
 	"mwa-error-unknown": "Used as generic error message on account creation",
 	"mwa-authfail": "Used as an error message to indicate the user was unable to log into the remote wiki, perhaps because they are using the wrong password.",
 	"mwa-finishcreate": "Used as a success message that an account was imported, and is displayed above a field that lets the user change their password. $1 is the label of the Skip button so that the user can keep the same password.",

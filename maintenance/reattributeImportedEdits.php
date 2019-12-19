@@ -2,7 +2,8 @@
 
 namespace MediaWikiAuth;
 
-use Wikimedia\Rdbms\Database;
+use Maintenance;
+use User;
 
 if ( getenv( 'MW_INSTALL_PATH' ) ) {
 	$IP = getenv( 'MW_INSTALL_PATH' );
@@ -12,7 +13,7 @@ if ( getenv( 'MW_INSTALL_PATH' ) ) {
 
 require_once "$IP/maintenance/Maintenance.php";
 
-class ReattributeImportedEdits extends \Maintenance {
+class ReattributeImportedEdits extends Maintenance {
 	const OPT_USER = 'user';
 
 	public function __construct() {
@@ -32,65 +33,111 @@ class ReattributeImportedEdits extends \Maintenance {
 		$singleUser = false;
 
 		if ( $this->hasOption( self::OPT_USER ) ) {
-			$user = \User::newFromName( $this->getOption( self::OPT_USER ) );
+			$user = User::newFromName( $this->getOption( self::OPT_USER ) );
 
 			if ( $user === null || $user->getId() === 0 ) {
-				$this->error( "User {$user} does not exist.\n", 1 );
+				$this->fatalError( "User {$user} does not exist.\n", 1 );
 				return; // never actually get here; error() calls die()
 			}
 
 			$singleUser = $user->getName();
 		}
 
-		foreach ( self::getTableMetadata() as $table => $metadata ) {
-			foreach ( $metadata[1] as $nameKey => $fields ) {
-				// not every DMBS supports joins on update, and those that do all
-				// do it different ways. Subqueries are therefore more portable.
-				$conds = array_fill_keys( $fields, 0 );
-				$setList = [];
+		foreach ( ReattributeEdits::getTableMetadata() as $table => $metadata ) {
+			[ $tableKey, $actorKey, $userText, $userKey ] = $metadata;
 
-				$subquery = $dbw->selectSQLText(
-					'user',
-					'user_id',
-					"user_name = $nameKey",
-					__METHOD__ . ':subquery'
-				);
+			// not every DMBS supports joins on update, and those that do all
+			// do it different ways. Subqueries are therefore more portable.
+			$conds = [];
+			$setList = [];
 
-				if ( $singleUser !== false ) {
-					$conds[$nameKey] = $singleUser;
-				} else {
-					$conds[] = "EXISTS($subquery)";
+			if ( ReattributeEdits::useActorSchema( $this->getConfig() ) ) {
+				$actorData = ReattributeEdits::getActorMigrationData( $dbw, $singleUser );
+				if ( $actorData === [] ) {
+					$this->output( "Nothing needs to be done.\n" );
+					return;
 				}
 
-				foreach ( $fields as $field ) {
-					$setList[] = "$field = ($subquery)";
+				$case = "CASE {$actorKey}";
+				foreach ( $actorData as $old => $new ) {
+					$case .= " WHEN {$old} THEN {$new}";
+				}
+				$case .= " ELSE {$actorKey} END";
+
+				$setList[] = "{$actorKey} = {$case}";
+				$conds[$actorKey] = array_keys( $actorData );
+			} else {
+				$conds[$userKey] = 0;
+				$subquery = $dbw->selectSQLText('user', 'user_id', "user_name = $userText", __METHOD__ . ':subquery');
+
+				if ($singleUser !== false) {
+					$conds[$userText] = $singleUser;
+				}
+				else {
+					$conds[] = "EXISTS({$subquery})";
 				}
 
-				$this->output( "Updating {$table} (this may take a few minutes)...\n" );
-				$success = $dbw->update( $table, $setList, $conds, __METHOD__ . ':update' );
+				$setList[] = "{$userKey} = ({$subquery})";
+			}
 
-				if ( $success ) {
-					$rows = $dbw->affectedRows();
-					$this->output( "Updated {$rows} records on {$table}.\n" );
-				} else {
-					$this->error( "Unable to update table {$table}.\n" );
-				}
+			$this->output( "Updating {$table} (this may take a few minutes)...\n" );
+			$success = $dbw->update( $table, $setList, $conds, __METHOD__ . ':update' );
+
+			if ( $success ) {
+				$rows = $dbw->affectedRows();
+				$this->output( "Updated {$rows} records on {$table}.\n" );
+			} else {
+				$this->error( "Unable to update table {$table}.\n" );
 			}
 		}
-	}
 
-	public static function getTableMetadata() {
-		// Note that only tables which are used in the XML dump import process (plus recentchanges) are updated.
-		return [
-			'archive' => [ 'ar_id', [ 'ar_user_text' => [ 'ar_user' ] ] ],
-			'filearchive' => [ 'fa_id', [ 'fa_user_text' => [ 'fa_user' ] ] ],
-			// img_name is the PK, and PKs are clustered on InnoDB, so we can sensibly use BETWEEN
-			'image' => [ 'img_name', [ 'img_user_text' => [ 'img_user' ] ] ],
-			'logging' => [ 'log_id', [ 'log_user_text' => [ 'log_user' ] ] ],
-			'oldimage' => [ 'oi_name', [ 'oi_user_text' => [ 'oi_user' ] ] ],
-			'recentchanges' => [ 'rc_id', [ 'rc_user_text' => [ 'rc_user' ] ] ],
-			'revision' => [ 'rev_id', [ 'rev_user_text' => [ 'rev_user' ] ] ]
-		];
+		// fix up the log_search table too. This has a much different table layout, so cannot be easily rolled into
+		// the above loop. We need to look at ls_type, it's either target_author_ip for pre-actor or
+		// target_author_actor for post-actor schemas.
+		$this->output( "Updating log_search (this may take a few minutes)...\n" );
+		$conds = [];
+		$setList = [];
+		if ( ReattributeEdits::useActorSchema( $this->getConfig() ) ) {
+			$migrateData = ReattributeEdits::getActorMigrationData( $dbw, $singleUser );
+			$conds['ls_type'] = 'target_author_actor';
+		} else {
+			$migrateData = [];
+			$res = $dbw->select(
+				[ 'log_search', 'user' ],
+				[ 'user_id', 'user_name' ],
+				[ 'ls_value = user_name', 'ls_type' => 'target_author_ip' ]
+			);
+
+			foreach ( $res as $row ) {
+				$migrateData[$row['user_name']] = $row['user_id'];
+			}
+
+			if ( $migrateData === [] ) {
+				$this->output( "Updated 0 records on log_search.\n" );
+				return;
+			}
+
+			$setList['ls_type'] = 'target_author_id';
+			$conds['ls_type'] = 'target_author_ip';
+		}
+
+		$case = "CASE ls_value";
+		foreach ( $migrateData as $old => $new ) {
+			$case .= " WHEN {$old} THEN {$new}";
+		}
+		$case .= " ELSE ls_value END";
+
+		$setList[] = "ls_value = {$case}";
+		$conds['ls_value'] = array_keys( $migrateData );
+
+		$success = $dbw->update( 'log_search', $setList, $conds, __METHOD__ . ':update' );
+
+		if ( $success ) {
+			$rows = $dbw->affectedRows();
+			$this->output( "Updated {$rows} records on log_search.\n" );
+		} else {
+			$this->error( "Unable to update table log_search.\n" );
+		}
 	}
 }
 
