@@ -7,6 +7,8 @@
 		]
 	},
 	"mwa-desc": "Authentifie avec et importe les comptes depuis une instance MediaWiki externe",
+	"mwa-config-allowpasswordchange": "Si vrai, après avoir importé son compte, l’utilisateur se verra proposé de changer son mot de passe de façon facultative (ou choisir un bouton Sauter pour conserver le même mot de passe).",
+	"mwa-config-apiurl": "URL de api.php du wiki distant pour s’authentifier de nouveau.",
 	"mwa-error-unknown": "Erreur inconnue en se connectant au wiki distant",
 	"mwa-authfail": "Impossible de se connecter au wiki distant pour importer votre compte. Assurez-vous d’utiliser le bon mot de passe.",
 	"mwa-finishcreate": "Votre compte a bien été importé. Vous pouvez définir un nouveau mot de passe maintenant, ou choisir « $1 » pour conserver l’actuel.",
