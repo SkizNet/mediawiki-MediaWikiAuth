@@ -1,0 +1,11 @@
+{
+	"@metadata": {
+		"authors": [
+			"K Messaoudi"
+		]
+	},
+	"mwa-config-allowpasswordchange": "Ma idetti, send mi yekter amiḍan-is, aseqdac ad as-d-yettwasumer ad ibeddel awal-is n uɛeddi (neɣ ad yefren taqeffalt n usuref iwakken ad yeǧǧ awal-is n uɛeddi)",
+	"mwa-config-apiurl": "URL n api.php n wiki anmeggag iwakken ad tɛawdeḍ asesteb.",
+	"mwa-config-importgroups": "Tawila-a tessenqad igrawen n yiseqdacen idiganen i yettunefken i useqdac. Ma idetti (amezwer), igrawen n wayla akk i yesɛa useqdac deg wiki anmeggag ad ttwaketren ɣer wiki adigan, d a u kan ilaq ad ilin yigrawen s yisem-nni dinna. Ma yeɣleḍ, ula d yiwen n ugraw n wayla ur yettwaktar. Mayella d tafelwit, tawila ad d-tefk umuɣ n yigrawen ara ineɣlen; anagar umuɣen-nni ara yettwaketren. Deg snat n tegnatin, igrawen ur nban ara ur zmiren ara ad ttwaketren, isefka akk n uzemz n taggara n ugraw ad qqimen akken.",
+	"mwa-config-importwatchlist": "Ma idetti, umuɣen n Umucaṛ ad ttwaketren s udras n umahil. Ma yeɣleḍ, umuɣen n umucaṛ ur ttwaketrayen ara. Asermed n waya ad d-yeglu s tuttriwin-nniḍen i API anmeggag. Ma aqeddac anmeggag yuɣal ẓẓay, tuttriwin-a timerna ad ɛeddint i wakud n ukaka n ukter n uqeddac. Deg tegnit-a, ad tebɣuḍ ad tessenseḍ aɣewwaṛ-a."
+}

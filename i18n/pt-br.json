@@ -5,6 +5,8 @@
 		]
 	},
 	"mwa-desc": "Autenticar e importar logins de uma instância MediaWiki externa",
+	"mwa-config-importgroups": "Essa configuração controla quais grupos de usuários locais são atribuídos ao usuário. Se verdadeiro (o padrão), todas as associações de grupo que o usuário tinha no wiki remoto são importadas para o wiki local, desde que existam grupos com o mesmo nome localmente. Se falso, nenhuma associação ao grupo será importada. Se uma matriz, a configuração lista os grupos para copiar; somente os listados são importados. Em ambos os casos, os grupos implícitos não podem ser importados e os dados de expiração do grupo são mantidos intactos.",
+	"mwa-config-importwatchlist": "Se true, as listas de páginas vigiadas serão importadas pela fila de trabalhos. Se falso, as listas de observação não serão importadas. Habilitar isso causará solicitações adicionais à API remota. Se o servidor remoto estiver excepcionalmente lento, essas solicitações adicionais poderão atingir o tempo limite do processo de importação do usuário. Nesse caso, você desejará desativar essa configuração.",
 	"mwa-error-unknown": "Erro desconhecido ao iniciar uma sessão na wiki remota.",
 	"mwa-authfail": "Não é possível iniciar sessão no wiki remoto para importar a sua conta. Verifique se você está usando a senha correta.",
 	"mwa-finishcreate": "A sua conta foi importada. Pode definir uma senha nova ou escolher \"$1\" para manter a senha atual.",
