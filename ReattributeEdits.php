@@ -42,7 +42,8 @@ class ReattributeEdits {
 			'logging' => [ 'log_id', 'log_actor', 'log_user_text', 'log_user' ],
 			'oldimage' => [ 'oi_name', 'oi_actor', 'oi_user_text', 'oi_user' ],
 			'recentchanges' => [ 'rc_id', 'rc_actor', 'rc_user_text', 'rc_user' ],
-			'revision' => [ 'rev_id', 'rev_actor', 'rev_user_text', 'rev_user' ]
+			'revision' => [ 'rev_id', null, 'rev_user_text', 'rev_user' ],
+			'revision_actor_temp' => [ 'revactor_rev', 'revactor_actor', null, null ]
 		];
 
 		if ( $table !== null ) {

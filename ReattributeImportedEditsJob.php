@@ -42,10 +42,20 @@ class ReattributeImportedEditsJob extends Job {
 		$conds = [ $tableKey => $this->params['ids'] ];
 
 		if ( $this->params['actor'] ) {
+			if ( $actorKey === null ) {
+				// table doesn't support actors, skip it
+				return true;
+			}
+
 			[ $oldActor, $newActor ] = ReattributeEdits::getActorMigrationData( $dbw, $user->getName() );
 			$setList[$actorKey] = $newActor;
 			$conds[$actorKey] = $oldActor;
 		} else {
+			if ( $userKey === null ) {
+				// table doesn't support pre-actor, skip it
+				return true;
+			}
+
 			$setList[$userKey] = $user->getId();
 			$conds[$userText] = $user->getName();
 		}

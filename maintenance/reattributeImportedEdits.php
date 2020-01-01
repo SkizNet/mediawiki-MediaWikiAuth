@@ -52,6 +52,11 @@ class ReattributeImportedEdits extends Maintenance {
 			$setList = [];
 
 			if ( ReattributeEdits::useActorSchema( $this->getConfig() ) ) {
+				if ( $actorKey === null ) {
+					// table doesn't support actors, skip it
+					continue;
+				}
+
 				$actorData = ReattributeEdits::getActorMigrationData( $dbw, $singleUser );
 				if ( $actorData === [] ) {
 					$this->output( "Nothing needs to be done.\n" );
@@ -67,6 +72,11 @@ class ReattributeImportedEdits extends Maintenance {
 				$setList[] = "{$actorKey} = {$case}";
 				$conds[$actorKey] = array_keys( $actorData );
 			} else {
+				if ( $userKey === null ) {
+					// table doesn't support pre-actor, skip it
+					continue;
+				}
+
 				$conds[$userKey] = 0;
 				$subquery = $dbw->selectSQLText('user', 'user_id', "user_name = $userText", __METHOD__ . ':subquery');
 
