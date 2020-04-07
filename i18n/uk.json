@@ -1,9 +1,9 @@
 {
 	"@metadata": {
 		"authors": [
+			"Movses",
 			"Piramidion",
-			"Vlad5250",
-			"Movses"
+			"Vlad5250"
 		]
 	},
 	"mwa-desc": "Автентифікує, порівнюючи із зовнішнім примірником MediaWiki, та імпортує логіни звідти ж",

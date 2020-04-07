@@ -2,9 +2,9 @@
 	"@metadata": {
 		"authors": [
 			"Gomoko",
-			"Wladek92",
+			"Pamputt",
 			"Thibaut120094",
-			"Pamputt"
+			"Wladek92"
 		]
 	},
 	"mwa-desc": "Authentifie avec et importe les comptes depuis une instance MediaWiki externe",

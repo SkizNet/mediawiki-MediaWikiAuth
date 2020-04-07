@@ -1,5 +1,7 @@
 {
-	"@metadata": [],
+	"@metadata": {
+		"authors": []
+	},
 	"mwa-extensionname": "{{name}}",
 	"mwa-desc": "{{desc|name=MediaWikiAuth|url=https://www.mediawiki.org/wiki/Extension:MediaWikiAuth}}",
 	"mwa-config-allowpasswordchange": "Description of the configuration variable $wgMediaWikiAuthAllowPasswordChange for [[mw:Extension:MediaWikiAuth|Extension:MediaWikiAuth]].",
