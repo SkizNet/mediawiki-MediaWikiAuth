@@ -16,37 +16,37 @@
 		"MediaWikiAuthAllowPasswordChange": {
 			"value": true,
 			"description": "If true, prompts the user to optionally change their password after import.",
-			"decriptionmsg": "mwa-config-allowpasswordchange",
+			"descriptionmsg": "mwa-config-allowpasswordchange",
 			"public": true
 		},
 		"MediaWikiAuthApiUrl": {
 			"value": "",
 			"description": "Remote API endpoint to auth against.",
-			"decriptionmsg": "mwa-config-apiurl",
+			"descriptionmsg": "mwa-config-apiurl",
 			"public": false
 		},
 		"MediaWikiAuthImportGroups": {
 			"value": true,
 			"description": "If a boolean, controls whether or not we copy group membership from remote wiki. If an array of strings, we only import the listed groups.",
-			"decriptionmsg": "mwa-config-importgroups",
+			"descriptionmsg": "mwa-config-importgroups",
 			"public": true
 		},
 		"MediaWikiAuthDisableAccountCreation": {
 			"value": false,
 			"description": "If true, assume all relevant users already exist locally but with invalid password hashes. When operating in this mode, watchlist, group imports, and edit reattribution do not happen.",
-			"decriptionmsg": "mwa-config-disableaccountcreation",
+			"descriptionmsg": "mwa-config-disableaccountcreation",
 			"public": true
 		},
 		"MediaWikiAuthImportWatchlist": {
 			"value": true,
 			"description": "Import watchlists via job queue",
-			"decriptionmsg": "mwa-config-importwatchlist",
+			"descriptionmsg": "mwa-config-importwatchlist",
 			"public": true
 		},
 		"MediaWikiAuthReattributeEdits": {
 			"value": true,
 			"description": "Reattribute existing edits by unknown actors via job queue",
-			"decriptionmsg": "mwa-config-reattributeedits",
+			"descriptionmsg": "mwa-config-reattributeedits",
 			"public": true
 		}
 	},
