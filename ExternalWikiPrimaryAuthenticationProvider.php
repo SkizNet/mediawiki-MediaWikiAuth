@@ -295,7 +295,13 @@ class ExternalWikiPrimaryAuthenticationProvider	extends AbstractPasswordPrimaryA
 		}
 
 		if ( isset( $userInfo->query->userinfo->messages ) ) {
-			$user->setNewtalk( true );
+			if ( class_exists( 'MediaWiki\User\TalkPageNotificationManager' ) ) {
+				// MW 1.35+
+				MediaWikiServices::getInstance()
+					->getTalkPageNotificationManager()->setUserHasNewMessages( $user );
+			} else {
+				$user->setNewtalk( true );
+			}
 		}
 
 		// editcount and registrationdate cannot be set via methods on User
