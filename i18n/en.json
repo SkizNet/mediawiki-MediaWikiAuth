@@ -15,6 +15,7 @@
 	"mwa-config-reattributeedits": "If true, existing imported edits which match the newly-created account's username will be reattributed via the job queue so they properly show in that user's Contributions page. If false, no reattribution occurs.",
 	"mwa-error-unknown": "Unknown error when logging in to the remote wiki.",
 	"mwa-authfail": "Unable to log into the remote wiki to import your account. Ensure you are using the correct password.",
+	"mwa-authfail2": "Unable to log into the remote wiki to import your account. The remote wiki had the following error: $1",
 	"mwa-finishcreate": "Your account has been successfully imported. You may set a new password now or choose \"$1\" to keep your current password.",
 	"mwa-finishimport-nocreate": "Your account has been successfully imported. Please set a new password for better security.",
 	"mwa-unconfiguredtitle": "Extension not configured.",

@@ -12,6 +12,7 @@
 	"mwa-config-reattributeedits": "Description of the configuration variable $wgMediaWikiAuthReattributeEdits for [[mw:Extension:MediaWikiAuth|Extension:MediaWikiAuth]].",
 	"mwa-error-unknown": "Used as generic error message on account creation",
 	"mwa-authfail": "Used as an error message to indicate the user was unable to log into the remote wiki, perhaps because they are using the wrong password.",
+	"mwa-authfail2": "Used as an error message to indicate the user was unable to log into the remote wiki. $1 is the error message provided by the remote wiki.",
 	"mwa-finishcreate": "Used as a success message that an account was imported, and is displayed above a field that lets the user change their password. $1 is the label of the Skip button so that the user can keep the same password.",
 	"mwa-finishimport-nocreate": "Used as a success message that an account was imported, and is displayed above a field that requires the user to change their password. Used instead of mwa-finishcreate when we cannot allow them to hit 'skip' for technical reasons.",
 	"mwa-unconfiguredtitle": "Used as the page title on the error page when the extension is not configured",
