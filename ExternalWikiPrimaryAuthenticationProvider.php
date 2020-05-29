@@ -5,7 +5,6 @@ namespace MediaWikiAuth;
 use BadMethodCallException;
 use CookieJar;
 use ErrorPageError;
-use Http;
 use JobQueueGroup;
 use MediaWiki\Auth\AbstractPasswordPrimaryAuthenticationProvider;
 use MediaWiki\Auth\AuthenticationRequest;
@@ -146,7 +145,8 @@ class ExternalWikiPrimaryAuthenticationProvider	extends AbstractPasswordPrimaryA
 			$loginToken = $resp->query->tokens->logintoken;
 
 			$resp = $this->apiRequest( 'POST', [
-				'action' => 'clientlogin'
+				'action' => 'clientlogin',
+				'errorformat' => 'raw'
 			], [
 				'loginreturnurl' => $this->config->get( 'Server' ),
 				'logintoken' => $loginToken,
@@ -154,7 +154,13 @@ class ExternalWikiPrimaryAuthenticationProvider	extends AbstractPasswordPrimaryA
 				'password' => $req->password
 			], __METHOD__ );
 
-			if ( $resp->clientlogin->status !== 'PASS' ) {
+			if ( isset( $resp->errors ) ) {
+				$err = $resp->errors[0];
+				$this->logger->info( 'Authentication against modern remote API failed for reason ' . $err->code,
+					[ 'remoteVersion' => $remoteVersion, 'caller' => __METHOD__, 'username' => $username ] );
+				$this->manager->removeAuthenticationSessionData( self::pwKey );
+				return AuthenticationResponse::newFail( wfMessage( 'mwa-authfail2', wfMessage( $err->key, $err->params )->plain() ) );
+			} elseif ( $resp->clientlogin->status !== 'PASS' ) {
 				$this->logger->info( 'Authentication against modern remote API failed for reason ' . $resp->clientlogin->status,
 					[ 'remoteVersion' => $remoteVersion, 'caller' => __METHOD__, 'username' => $username ] );
 				$this->manager->removeAuthenticationSessionData( self::pwKey );
@@ -189,7 +195,11 @@ class ExternalWikiPrimaryAuthenticationProvider	extends AbstractPasswordPrimaryA
 		// ensure the user can log in even if we don't do secondary password reset
 		$password = $this->manager->getAuthenticationSessionData( self::pwKey );
 		$this->manager->removeAuthenticationSessionData( self::pwKey );
-		$user->setPassword( $password );
+		$user->changeAuthenticationData( [
+			'username' => $user->getName(),
+			'password' => $password,
+			'retype' => $password
+		] );
 
 		// $user->saveChanges() is called automatically after this runs,
 		// so calling it ourselves is not necessary.
@@ -352,7 +362,7 @@ class ExternalWikiPrimaryAuthenticationProvider	extends AbstractPasswordPrimaryA
 			$ids = [];
 			foreach ( $res as $row ) {
 				$counter++;
-				$ids[] = $row[$tableKey];
+				$ids[] = $row->$tableKey;
 
 				if ( $counter === $pagesPerJob ) {
 					$jobs[] = new ReattributeImportedEditsJob( $title, [
@@ -382,7 +392,7 @@ class ExternalWikiPrimaryAuthenticationProvider	extends AbstractPasswordPrimaryA
 			$res = $dbr->select(
 				'log_search',
 				'ls_log_id',
-				[ 'ls_type' => 'target_author_actor', 'ls_value' => array_keys( $data ) ],
+				[ 'ls_field' => 'target_author_actor', 'ls_value' => array_keys( $data ) ],
 				__METHOD__ . ':populateJobs',
 				[ 'DISTINCT' ]
 			);
@@ -390,7 +400,7 @@ class ExternalWikiPrimaryAuthenticationProvider	extends AbstractPasswordPrimaryA
 			$res = $dbr->select(
 				'log_search',
 				'ls_log_id',
-				[ 'ls_type' => 'target_author_ip', 'ls_value' => $user->getName() ],
+				[ 'ls_field' => 'target_author_ip', 'ls_value' => $user->getName() ],
 				__METHOD__ . ':populateJobs',
 				[ 'DISTINCT' ]
 			);
@@ -400,7 +410,7 @@ class ExternalWikiPrimaryAuthenticationProvider	extends AbstractPasswordPrimaryA
 		$ids = [];
 		foreach ( $res as $row ) {
 			$counter++;
-			$ids[] = $row['ls_log_id'];
+			$ids[] = $row->ls_log_id;
 
 			if ( $counter === $pagesPerJob ) {
 				$jobs[] = new ReattributeImportedEditsJob( $title, [
@@ -491,15 +501,22 @@ class ExternalWikiPrimaryAuthenticationProvider	extends AbstractPasswordPrimaryA
 			MWDebug::log( 'POST data: ' . json_encode( $postData ) );
 		}
 
-		// MW's implementation of Guzzle as of 1.34 doesn't support cookies
-		// TODO: get a fix merged into core and do a proper version check once that happens
-		$prevEngine = Http::$httpEngine;
-		Http::$httpEngine = 'curl';
-		$reqFactory = MediaWikiServices::getInstance()->getHttpRequestFactory();
-		$req = $reqFactory->create( $apiUrl, $options, $caller );
-		$req->setCookieJar( $this->cookieJar );
+		// Handle cookies manually. Guzzle's cookie handling is broken in 1.34.
+		$baseUrlDetails = wfParseUrl( $baseUrl );
+		$host = $baseUrlDetails['host'];
+		$path = isset( $baseUrlDetails['path'] ) ? $baseUrlDetails['path'] : '/';
+
+		$req = MediaWikiServices::getInstance()->getHttpRequestFactory()->create( $apiUrl, $options, $caller );
+		$cookieHeader = $this->cookieJar->serializeToHttpRequest( $path, $host );
+		if ( $cookieHeader !== '' ) {
+			MWDebug::log( 'Cookies: ' . $cookieHeader );
+			$req->setHeader('Cookie', $cookieHeader);
+		}
 		$status = $req->execute();
-		Http::$httpEngine = $prevEngine; // reset it back to how it was before in case other code needs it
+		$setCookieHeader = $req->getResponseHeader( 'Set-Cookie' );
+		if ( $setCookieHeader !== null ) {
+			$this->cookieJar->parseCookieResponseHeader( $setCookieHeader, $host );
+		}
 
 		if ( $status->isOK() ) {
 			$content = json_decode( $req->getContent() );
@@ -513,6 +530,9 @@ class ExternalWikiPrimaryAuthenticationProvider	extends AbstractPasswordPrimaryA
 			}
 
 			MWDebug::log( 'API Response: ' . $req->getContent() );
+			if ( $setCookieHeader !== null ) {
+				MWDebug::log( 'Response Cookies: ' . $setCookieHeader );
+			}
 
 			return $content;
 		} else {

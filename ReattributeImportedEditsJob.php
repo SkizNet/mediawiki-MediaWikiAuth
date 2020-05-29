@@ -74,12 +74,12 @@ class ReattributeImportedEditsJob extends Job {
 			[ $oldActor, $newActor ] = ReattributeEdits::getActorMigrationData( $dbw, $user->getName() );
 			$setList['ls_value'] = $newActor;
 			$conds['ls_value'] = $oldActor;
-			$conds['ls_type'] = 'target_author_actor';
+			$conds['ls_field'] = 'target_author_actor';
 		} else {
 			$setList['ls_value'] = $user->getId();
 			$setList['ls_type'] = 'target_author_id';
 			$conds['ls_value'] = $user->getName();
-			$conds['ls_type'] = 'target_author_ip';
+			$conds['ls_field'] = 'target_author_ip';
 		}
 
 		$dbw->update( $this->params['table'], $setList, $conds, __METHOD__ );
