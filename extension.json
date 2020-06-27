@@ -12,6 +12,9 @@
 	"descriptionmsg": "mwa-desc",
 	"license-name": "GPL-2.0-or-later",
 	"type": "other",
+	"requires": {
+		"MediaWiki": ">= 1.29.0"
+	},
 	"config": {
 		"MediaWikiAuthAllowPasswordChange": {
 			"value": true,
