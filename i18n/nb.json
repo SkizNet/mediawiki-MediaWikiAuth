@@ -13,6 +13,7 @@
 	"mwa-config-reattributeedits": "Hvis denne er <code>true</code> vil eksisterende importerte redigeringer som matcher den nyopprettede brukernavnet omattributeres via jobbkøen så de vises riktig på brukerens bidragsside. Hvis den er <code>false</code> skjer ikke dette.",
 	"mwa-error-unknown": "Ukjent feil under innlogging på ekstern wiki.",
 	"mwa-authfail": "Kunne ikke logge inn på den eksterne wikien for å importere kontoen din. Sjekk at du har riktig passord.",
+	"mwa-authfail2": "Kunne ikke logge inn på den eksterne wikien for å importere kontoen din. Den eksterne wikien hadde følgende feil: $1",
 	"mwa-finishcreate": "Kontoen din har blitt importert. Du kan sette et nytt passord nå, eller velge «$1» for å beholde det nåværende passordet.",
 	"mwa-finishimport-nocreate": "Kontoen din har blitt importert. Velg et nytt passord for å forbedre sikkerheten.",
 	"mwa-unconfiguredtitle": "Utvidelsen ikke konfigurert.",
