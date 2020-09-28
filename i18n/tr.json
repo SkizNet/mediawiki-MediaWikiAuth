@@ -1,7 +1,8 @@
 {
 	"@metadata": {
 		"authors": [
-			"BaRaN6161 TURK"
+			"BaRaN6161 TURK",
+			"MuratTheTurkish"
 		]
 	},
 	"mwa-desc": "Harici bir MediaWiki örneğinden girişleri doğrular ve girişleri doğrular",
@@ -11,13 +12,13 @@
 	"mwa-config-disableaccountcreation": "<code>true</code> ise, MediaWikiAuth tüm ilgili kullanıcıların önceden yerel olarak oluşturulduğunu ancak geçersiz parola karmalarıyla var olduğunu varsayar. Bu, yalnızca uzaktan vikideki tüm kullanıcıların, örneğin uzaktan düzenlenmiş olan herkesin bazı alt kümelerini içe aktarmak istiyorsanız yararlıdır. <code>true</code> ise, MediaWikiAuth geçersiz parolayı algılar ve kullanıcının verdiği parolayla uzak vikiye karşı kimlik doğrulaması yapmaya çalışır. Başarılı olursa, kullanıcının gelecekte normal olarak oturum açabilmesi için yerel parolasını değiştirmesi istenir.\n\nBu modda çalışırken izleme listesi, grup içe aktarma ve düzenleme yeniden dağıtım gerçekleşmez. Bu ayarlar yok sayılır.",
 	"mwa-config-importwatchlist": "<code>true</code> ise izleme listeleri iş kuyruğu üzerinden içe aktarılır. <code>false</code> ise izleme listeleri içe aktarılmaz. Bunu etkinleştirmek, uzak API için ek isteklere neden olur. Uzak sunucu son derece yavaşsa, bu ek istekler kullanıcı içe aktarma işlemini zaman aşımına uğratabilir. Bu durumda, bu ayarı devre dışı bırakmak istersiniz.",
 	"mwa-config-reattributeedits": "<code>true</code> ise yeni oluşturulan hesabın kullanıcı adıyla eşleşen mevcut içe aktarılan düzenlemeler iş kuyruğu üzerinden yeniden dağıtılacak ve böylece kullanıcının Katkılar sayfasında düzgün bir şekilde gösterilecektir. <code>false</code> ise yeniden dağıtım gerçekleşmez.",
-	"mwa-error-unknown": "Uzak wikiye giriş yaparken bilinmeyen hata.",
-	"mwa-authfail": "Hesabınızı almak için uzak wikiye giriş yapamıyor. Doğru şifreyi kullandığınızdan emin olun.",
-	"mwa-authfail2": "Hesabınızı içe aktarmak için uzak vikiye giriş yapılamıyor. Uzak vikide şu hata oluştu: $1",
-	"mwa-finishcreate": "Hesabınız başarıyla içe aktarıldı. Şimdi yeni bir şifre belirleyebilir veya mevcut şifrenizi korumak için \"$1\" seçeneğini seçebilirsiniz.",
-	"mwa-finishimport-nocreate": "Hesabınız başarıyla içe aktarıldı. Lütfen daha iyi güvenlik için yeni bir şifre belirleyin.",
+	"mwa-error-unknown": "Uzak vikiye oturum açarken bilinmeyen hata.",
+	"mwa-authfail": "Hesabınızı almak için uzak vikiye oturum açamıyor. Doğru parolayı kullandığınızdan emin olun.",
+	"mwa-authfail2": "Hesabınızı içe aktarmak için uzak vikiye oturum açamıyor. Uzak vikide şu hata oluştu: $1",
+	"mwa-finishcreate": "Hesabınız başarıyla içe aktarıldı. Şimdi yeni bir parola belirleyebilir veya mevcut patolanızı korumak için \"$1\" seçeneğini seçebilirsiniz.",
+	"mwa-finishimport-nocreate": "Hesabınız başarıyla içe aktarıldı. Lütfen daha iyi güvenlik için yeni bir parola belirleyin.",
 	"mwa-unconfiguredtitle": "Uzantı yapılandırılmadı.",
-	"mwa-unconfiguredtext": "MediaWikiAuth uzantısı doğru şekilde yapılandırılmamış. $WgMediaWikiAuthApiUrl öğesinin LocalSettings.php dosyasında uzak wikinin API URL'sine ayarlandığından emin olun.",
+	"mwa-unconfiguredtext": "MediaWikiAuth uzantısı doğru şekilde yapılandırılmamış. $WgMediaWikiAuthApiUrl öğesinin LocalSettings.php dosyasında uzak vikinin API URL'sine ayarlandığından emin olun.",
 	"action-mwa-createlocalaccount": "desteklenmeyen bir dış hesapla aynı kullanıcı adına sahip yerel hesaplar oluşturun",
 	"right-mwa-createlocalaccount": "Desteklenmeyen bir dış hesapla aynı kullanıcı adına sahip yerel hesaplar oluşturun"
 }
