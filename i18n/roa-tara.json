@@ -5,6 +5,7 @@
 		]
 	},
 	"mwa-desc": "Autendiche le accesse e le 'mborte da 'n'istanze de MediaUicchi de fore",
+	"mwa-config-apiurl": "URL de l'api.php remote pe autendicarse.",
 	"mwa-error-unknown": "Errore scanusciune quanne agghie trasute jndr'à 'na uicchi remote.",
 	"mwa-authfail": "'Mbossibbele trasè jndr'à uicchi remote pe 'mbortà 'u cunde tune. Condrolle ce ste ause 'a passuord satta.",
 	"mwa-finishcreate": "'U cunde tune ha state 'mbortate. Puè 'mbostà 'na passuord nove o scacchià \"$1\" pe mandenè quedde de mò.",
