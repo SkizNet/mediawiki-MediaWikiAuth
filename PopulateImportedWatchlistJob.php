@@ -28,7 +28,14 @@ class PopulateImportedWatchlistJob extends \Job {
 		}
 
 		foreach ( $this->params['pages'] as $page ) {
-			$title = Title::makeTitleSafe( $page->ns, $page->title );
+			if ( $page->ns !== 0 ) {
+				$parts = explode( ':', $page->title, 2 );
+				$pageName = $parts[1];
+			} else {
+				$pageName = $page->title;
+			}
+
+			$title = Title::makeTitleSafe( $page->ns, $pageName );
 			if ( $title === null ) {
 				// do not error out import on invalid titles, as it could just mean that config
 				// is different between our wiki and the external wiki such that this title isn't valid.
