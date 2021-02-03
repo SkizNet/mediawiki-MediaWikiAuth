@@ -8,6 +8,7 @@
 	"mwa-config-apiurl": "URL de l'api.php remote pe autendicarse.",
 	"mwa-error-unknown": "Errore scanusciune quanne agghie trasute jndr'à 'na uicchi remote.",
 	"mwa-authfail": "'Mbossibbele trasè jndr'à uicchi remote pe 'mbortà 'u cunde tune. Condrolle ce ste ause 'a passuord satta.",
+	"mwa-authfail2": "'Mbossibbele trasè jndr'à uicchi remote pe 'mbortà 'u cunde tune. 'A uicchi remote ave avute stu errore: $1",
 	"mwa-finishcreate": "'U cunde tune ha state 'mbortate. Puè 'mbostà 'na passuord nove o scacchià \"$1\" pe mandenè quedde de mò.",
 	"mwa-finishimport-nocreate": "'U cunde tune ha state 'mbortate. Pe piacere 'mboste 'na passuord nove pe maggiore securezze.",
 	"mwa-unconfiguredtitle": "Estenzione non configurate.",
