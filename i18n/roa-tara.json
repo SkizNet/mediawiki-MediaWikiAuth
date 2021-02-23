@@ -7,6 +7,7 @@
 	"mwa-desc": "Autendiche le accesse e le 'mborte da 'n'istanze de MediaUicchi de fore",
 	"mwa-config-allowpasswordchange": "Ce <code>true</code>, apprisse ca ha state 'mbortate 'u probbie cunde, a l'utende avène cercate de cangià, ce vole, 'a passuord (o scacchià 'nu buttone pe mandenè 'a stessa passuord).",
 	"mwa-config-apiurl": "URL de l'api.php remote pe autendicarse.",
+	"mwa-config-importgroups": "Sta configurazione condrolle quale gruppe de utinde locale onne state assignate a l'utende. Ce <code>true</code> ('u valore predefinite), tutte le appartenenze a le gruppe ca l'utende tenève sus 'a uicchi remote avènene 'mbortate sus 'a uicchi locale, a condizione ca le gruppe cu 'u stesse nomne stonne pure localmende. Ce <code>false</code>, non g'avène 'mbortate nisciune appartenenze a 'u gruppe. Ce se tratte de 'na matrice, 'a configurazione elenghe le gruppe addò se pò copià; avènene 'mbortate sulamende chidde elengate. Jndr'à totte e doje le case, le gruppe imblicite non ge ponne essere 'mbortate e qualungue date in scadenze d'u gruppe avène mandenute sane sane.",
 	"mwa-error-unknown": "Errore scanusciune quanne agghie trasute jndr'à 'na uicchi remote.",
 	"mwa-authfail": "'Mbossibbele trasè jndr'à uicchi remote pe 'mbortà 'u cunde tune. Condrolle ce ste ause 'a passuord satta.",
 	"mwa-authfail2": "'Mbossibbele trasè jndr'à uicchi remote pe 'mbortà 'u cunde tune. 'A uicchi remote ave avute stu errore: $1",
