@@ -4,9 +4,11 @@
 			"Gomoko",
 			"Pamputt",
 			"Thibaut120094",
+			"Verdy p",
 			"Wladek92"
 		]
 	},
+	"mwa-extensionname": "MediaWikiAuth",
 	"mwa-desc": "Authentifie avec et importe les comptes depuis une instance MediaWiki externe",
 	"mwa-config-allowpasswordchange": "Si <code>true</code>, après avoir importé son compte, l’utilisateur se verra proposer de changer son mot de passe de façon facultative (ou choisir un bouton Sauter pour conserver le même mot de passe).",
 	"mwa-config-apiurl": "URL de api.php du wiki distant pour s’authentifier de nouveau.",
