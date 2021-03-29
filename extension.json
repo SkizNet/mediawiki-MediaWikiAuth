@@ -13,7 +13,7 @@
 	"license-name": "GPL-2.0-or-later",
 	"type": "other",
 	"requires": {
-		"MediaWiki": ">= 1.29.0"
+		"MediaWiki": ">= 1.35.0"
 	},
 	"config": {
 		"MediaWikiAuthAllowPasswordChange": {
@@ -77,7 +77,11 @@
 			"ExternalWikiPrimaryAuthenticationProvider": {
 				"class": "MediaWikiAuth\\ExternalWikiPrimaryAuthenticationProvider",
 				"args": [ { "authoritative": false } ],
-				"sort": 50
+				"sort": 50,
+				"services": [
+					"UserGroupManager",
+					"UserOptionsManager"
+				]
 			}
 		}
 	},

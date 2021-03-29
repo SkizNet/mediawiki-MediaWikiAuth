@@ -12,6 +12,8 @@ use MediaWiki\Auth\AuthenticationResponse;
 use MediaWiki\Auth\PasswordAuthenticationRequest;
 use MediaWiki\Logger\LoggerFactory;
 use MediaWiki\MediaWikiServices;
+use MediaWiki\User\UserGroupManager;
+use MediaWiki\User\UserOptionsManager;
 use MWDebug;
 use RequestContext;
 use Skin;
@@ -24,10 +26,27 @@ class ExternalWikiPrimaryAuthenticationProvider	extends AbstractPasswordPrimaryA
 	private $userCache = [];
 	private const pwKey = 'MediaWikiAuth-userpw';
 
-	public function __construct( array $params = [] ) {
+	/** @var UserGroupManager */
+	private $userGroupManager;
+
+	/** @var UserOptionsManager */
+	private $userOptionsManager;
+
+	/**
+	 * @param UserGroupManager $userGroupManager
+	 * @param UserOptionsManager $userOptionsManager
+	 * @param array $params
+	 */
+	public function __construct(
+		UserGroupManager $userGroupManager,
+		UserOptionsManager $userOptionsManager,
+		array $params = []
+	) {
 		parent::__construct( $params );
 
 		$this->cookieJar = new CookieJar();
+		$this->userGroupManager = $userGroupManager;
+		$this->userOptionsManager = $userOptionsManager;
 	}
 
 	/**
@@ -271,7 +290,7 @@ class ExternalWikiPrimaryAuthenticationProvider	extends AbstractPasswordPrimaryA
 					continue;
 				}
 
-				$user->addGroup( $group->group, $group->expiry );
+				$this->userGroupManager->addUserToGroup( $user, $group->group, $group->expiry );
 			}
 		} else {
 			foreach ( $userInfo->query->userinfo->groups as $group ) {
@@ -279,7 +298,7 @@ class ExternalWikiPrimaryAuthenticationProvider	extends AbstractPasswordPrimaryA
 					continue;
 				}
 
-				$user->addGroup( $group );
+				$this->userGroupManager->addUserToGroup( $user, $group );
 			}
 		}
 
@@ -290,7 +309,7 @@ class ExternalWikiPrimaryAuthenticationProvider	extends AbstractPasswordPrimaryA
 			$user->setEmailWithConfirmation( $userInfo->query->userinfo->email );
 		}
 
-		$validOptions = $user->getOptions();
+		$validOptions = $this->userOptionsManager->getOptions( $user );
 		$validSkins = array_keys( Skin::getAllowedSkins() );
 		$optionBlacklist = [ 'watchlisttoken' ];
 
@@ -300,7 +319,7 @@ class ExternalWikiPrimaryAuthenticationProvider	extends AbstractPasswordPrimaryA
 				&& array_key_exists( $option, $validOptions )
 				&& $validOptions[$option] !== $value
 			) {
-				$user->setOption( $option, $value );
+				$this->userOptionsManager->setOption( $user, $option, $value );
 			}
 		}
 
