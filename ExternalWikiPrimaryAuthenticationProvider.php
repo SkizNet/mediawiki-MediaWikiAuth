@@ -10,34 +10,65 @@ use MediaWiki\Auth\AbstractPasswordPrimaryAuthenticationProvider;
 use MediaWiki\Auth\AuthenticationRequest;
 use MediaWiki\Auth\AuthenticationResponse;
 use MediaWiki\Auth\PasswordAuthenticationRequest;
+use MediaWiki\Http\HttpRequestFactory;
 use MediaWiki\Logger\LoggerFactory;
-use MediaWiki\MediaWikiServices;
+use MediaWiki\User\TalkPageNotificationManager;
 use MediaWiki\User\UserGroupManager;
 use MediaWiki\User\UserOptionsManager;
 use MWDebug;
+use MWException;
 use RequestContext;
 use Skin;
+use SkinFactory;
 use Status;
+use stdClass;
 use Title;
 use User;
 
+/**
+ * Class ExternalWikiPrimaryAuthenticationProvider
+ * @package MediaWikiAuth
+ * @stable to extend (public/protected API versioned with semver)
+ */
 class ExternalWikiPrimaryAuthenticationProvider	extends AbstractPasswordPrimaryAuthenticationProvider {
+	/** @var CookieJar */
 	protected $cookieJar;
+
+	/** @var array Cache of users we've already looked up in the API */
 	private $userCache = [];
-	private const pwKey = 'MediaWikiAuth-userpw';
+
+	/** @var string Key containing the user's password stored as part of session manager state */
+	private const PWKEY = 'MediaWikiAuth-userpw';
 
 	/** @var UserGroupManager */
-	private $userGroupManager;
+	protected $userGroupManager;
 
 	/** @var UserOptionsManager */
-	private $userOptionsManager;
+	protected $userOptionsManager;
+
+	/** @var TalkPageNotificationManager */
+	protected $talkPageNotificationManager;
+
+	/** @var SkinFactory */
+	protected $skinFactory;
+
+	/** @var HttpRequestFactory */
+	protected $httpRequestFactory;
 
 	/**
+	 * Constructor.
+	 *
+	 * @param HttpRequestFactory $httpRequestFactory
+	 * @param SkinFactory $skinFactory
+	 * @param TalkPageNotificationManager $talkPageNotificationManager
 	 * @param UserGroupManager $userGroupManager
 	 * @param UserOptionsManager $userOptionsManager
 	 * @param array $params
 	 */
 	public function __construct(
+		HttpRequestFactory $httpRequestFactory,
+		SkinFactory $skinFactory,
+		TalkPageNotificationManager $talkPageNotificationManager,
 		UserGroupManager $userGroupManager,
 		UserOptionsManager $userOptionsManager,
 		array $params = []
@@ -47,6 +78,9 @@ class ExternalWikiPrimaryAuthenticationProvider	extends AbstractPasswordPrimaryA
 		$this->cookieJar = new CookieJar();
 		$this->userGroupManager = $userGroupManager;
 		$this->userOptionsManager = $userOptionsManager;
+		$this->talkPageNotificationManager = $talkPageNotificationManager;
+		$this->skinFactory = $skinFactory;
+		$this->httpRequestFactory = $httpRequestFactory;
 	}
 
 	/**
@@ -62,7 +96,7 @@ class ExternalWikiPrimaryAuthenticationProvider	extends AbstractPasswordPrimaryA
 	 *
 	 * @param array $reqs
 	 * @return AuthenticationResponse
-	 * @throws ErrorPageError
+	 * @throws ErrorPageError|MWException
 	 */
 	public function beginPrimaryAuthentication( array $reqs ) {
 		/** @var PasswordAuthenticationRequest $req */
@@ -111,7 +145,7 @@ class ExternalWikiPrimaryAuthenticationProvider	extends AbstractPasswordPrimaryA
 
 		// Save the user password so we can set it in autoCreatedAccount (otherwise the user has
 		// null credentials unless they go through the optional password change process)
-		$this->manager->setAuthenticationSessionData( self::pwKey, $req->password );
+		$this->manager->setAuthenticationSessionData( self::PWKEY, $req->password );
 
 		// Grab remote MediaWiki version; our auth flow depends on what we get back
 		$resp = $this->apiRequest( 'GET', [
@@ -144,9 +178,10 @@ class ExternalWikiPrimaryAuthenticationProvider	extends AbstractPasswordPrimaryA
 			}
 
 			if ( $resp->login->result !== 'Success' ) {
-				$this->logger->info( 'Authentication against legacy remote API failed for reason ' . $resp->login->result,
+				$this->logger->info(
+					'Authentication against legacy remote API failed for reason ' . $resp->login->result,
 					[ 'remoteVersion' => $remoteVersion, 'caller' => __METHOD__, 'username' => $username ] );
-				$this->manager->removeAuthenticationSessionData( self::pwKey );
+				$this->manager->removeAuthenticationSessionData( self::PWKEY );
 				return AuthenticationResponse::newFail( wfMessage( 'mwa-authfail' ) );
 			}
 		} else {
@@ -177,12 +212,15 @@ class ExternalWikiPrimaryAuthenticationProvider	extends AbstractPasswordPrimaryA
 				$err = $resp->errors[0];
 				$this->logger->info( 'Authentication against modern remote API failed for reason ' . $err->code,
 					[ 'remoteVersion' => $remoteVersion, 'caller' => __METHOD__, 'username' => $username ] );
-				$this->manager->removeAuthenticationSessionData( self::pwKey );
-				return AuthenticationResponse::newFail( wfMessage( 'mwa-authfail2', wfMessage( $err->key, $err->params )->plain() ) );
+				$this->manager->removeAuthenticationSessionData( self::PWKEY );
+				return AuthenticationResponse::newFail(
+					wfMessage( 'mwa-authfail2', wfMessage( $err->key, $err->params )->plain() )
+				);
 			} elseif ( $resp->clientlogin->status !== 'PASS' ) {
-				$this->logger->info( 'Authentication against modern remote API failed for reason ' . $resp->clientlogin->status,
+				$this->logger->info(
+					'Authentication against modern remote API failed for reason ' . $resp->clientlogin->status,
 					[ 'remoteVersion' => $remoteVersion, 'caller' => __METHOD__, 'username' => $username ] );
-				$this->manager->removeAuthenticationSessionData( self::pwKey );
+				$this->manager->removeAuthenticationSessionData( self::PWKEY );
 				return AuthenticationResponse::newFail( wfMessage( 'mwa-authfail' ) );
 			}
 		}
@@ -202,8 +240,7 @@ class ExternalWikiPrimaryAuthenticationProvider	extends AbstractPasswordPrimaryA
 	 * @param User $user
 	 * @param string $source
 	 * @return void
-	 * @throws ErrorPageError
-	 * @throws \PasswordError
+	 * @throws ErrorPageError|MWException
 	 */
 	public function autoCreatedAccount( $user, $source ) {
 		if ( $source !== __CLASS__ ) {
@@ -212,8 +249,8 @@ class ExternalWikiPrimaryAuthenticationProvider	extends AbstractPasswordPrimaryA
 		}
 
 		// ensure the user can log in even if we don't do secondary password reset
-		$password = $this->manager->getAuthenticationSessionData( self::pwKey );
-		$this->manager->removeAuthenticationSessionData( self::pwKey );
+		$password = $this->manager->getAuthenticationSessionData( self::PWKEY );
+		$this->manager->removeAuthenticationSessionData( self::PWKEY );
 		$user->changeAuthenticationData( [
 			'username' => $user->getName(),
 			'password' => $password,
@@ -226,14 +263,16 @@ class ExternalWikiPrimaryAuthenticationProvider	extends AbstractPasswordPrimaryA
 		$userInfo = $this->apiRequest( 'GET', [
 			'action' => 'query',
 			'meta' => 'userinfo',
-			'uiprop' => 'blockinfo|hasmsg|editcount|groups|groupmemberships|options|email|realname|registrationdate'
+			'uiprop' => 'blockinfo|hasmsg|editcount|groups|groupmemberships|options|email|realname|registrationdate',
+			'assert' => 'user'
 		], [], __METHOD__ );
 
 		$wrquery = [
 			'action' => 'query',
 			'list' => 'watchlistraw',
 			'wrprop' => 'changed',
-			'wrlimit' => 'max'
+			'wrlimit' => 'max',
+			'assert' => 'user'
 		];
 
 		$watchlist = [];
@@ -241,12 +280,22 @@ class ExternalWikiPrimaryAuthenticationProvider	extends AbstractPasswordPrimaryA
 
 		$dbw = wfGetDB( DB_MASTER );
 		$jobs = [];
-		$title = $user->getUserPage(); // not used by us, but Job constructor needs a valid Title
+		// not used by us, but Job constructor needs a valid Title
+		$title = $user->getUserPage();
 
 		// enqueue jobs to actually add watchlist items and to reattribute already-existing edits (if enabled)
 		if ( $this->config->get( 'MediaWikiAuthImportWatchlist' ) ) {
 			while ( true ) {
 				$resp = $this->apiRequest( 'GET', $wrquery, [], __METHOD__ );
+				if ( isset( $resp->error ) ) {
+					$this->logger->error(
+						'Unable to load remote user watchlist due to error in remote API: ' . $resp->error->info,
+						$resp->error
+					);
+
+					break;
+				}
+
 				$watchlist = array_merge( $watchlist, $resp->watchlistraw );
 
 				if ( !isset( $resp->{'query-continue'} ) ) {
@@ -260,7 +309,10 @@ class ExternalWikiPrimaryAuthenticationProvider	extends AbstractPasswordPrimaryA
 				// array_splice reduces the size of $watchlist and returns the removed elements.
 				// This avoids memory bloat so that we only keep the watchlist resident in memory one time.
 				$slice = array_splice( $watchlist, 0, $pagesPerJob );
-				$jobs[] = new PopulateImportedWatchlistJob( $title, [ 'username' => $user->getName(), 'pages' => $slice ] );
+				$jobs[] = new PopulateImportedWatchlistJob( $title, [
+					'username' => $user->getName(),
+					'pages' => $slice
+				] );
 			}
 		}
 
@@ -272,15 +324,30 @@ class ExternalWikiPrimaryAuthenticationProvider	extends AbstractPasswordPrimaryA
 			JobQueueGroup::singleton()->push( $jobs );
 		}
 
-		// groupmemberships contains groups and expiries, but is only present in recent versions of MW. Fall back to groups if it doesn't exist.
-		$validGroups = array_diff( array_keys( $this->config->get( 'GroupPermissions' ) ), $this->config->get( 'ImplicitGroups' ) );
+		if ( isset( $userInfo->error ) ) {
+			$this->logger->error(
+				'Unable to load remote user information due to error in remote API: ' . $userInfo->error->info,
+				$userInfo->error
+			);
+
+			return;
+		}
+
+		// groupmemberships contains groups and expiries, but is only present in recent versions of MW.
+		// Fall back to groups if it doesn't exist.
+		$validGroups = array_diff(
+			array_keys( $this->config->get( 'GroupPermissions' ) ),
+			$this->config->get( 'ImplicitGroups' )
+		);
+
 		$importableGroups = $this->config->get( 'MediaWikiAuthImportGroups' );
 		if ( $importableGroups === false ) {
 			// do not import any groups
 			$validGroups = [];
 		} elseif ( is_array( $importableGroups ) ) {
 			// array_intersect has a mind-bogglingly stupid implementation,
-			// in the sense that if the first array has dups, those dups are returned even if subsequent arrays don't have that element at all
+			// in the sense that if the first array has dups, those dups are returned even if subsequent arrays
+			// don't have that element at all
 			$validGroups = array_intersect( array_unique( $validGroups ), $importableGroups );
 		}
 
@@ -304,13 +371,20 @@ class ExternalWikiPrimaryAuthenticationProvider	extends AbstractPasswordPrimaryA
 
 		if ( isset( $userInfo->query->userinfo->emailauthenticated ) ) {
 			$user->setEmail( $userInfo->query->userinfo->email );
-			$user->setEmailAuthenticationTimestamp( wfTimestamp( TS_MW, $userInfo->query->userinfo->emailauthenticated ) );
+			$user->setEmailAuthenticationTimestamp(
+				wfTimestamp( TS_MW, $userInfo->query->userinfo->emailauthenticated )
+			);
 		} elseif ( isset( $userInfo->query->userinfo->email ) ) {
 			$user->setEmailWithConfirmation( $userInfo->query->userinfo->email );
 		}
 
 		$validOptions = $this->userOptionsManager->getOptions( $user );
-		$validSkins = array_keys( Skin::getAllowedSkins() );
+		if ( method_exists( $this->skinFactory, 'getAllowedSkins' ) ) {
+			// MW 1.36
+			$validSkins = array_keys( $this->skinFactory->getAllowedSkins() );
+		} else {
+			$validSkins = array_keys( Skin::getAllowedSkins() );
+		}
 		$optionBlacklist = [ 'watchlisttoken' ];
 
 		foreach ( $userInfo->query->userinfo->options as $option => $value ) {
@@ -324,13 +398,7 @@ class ExternalWikiPrimaryAuthenticationProvider	extends AbstractPasswordPrimaryA
 		}
 
 		if ( isset( $userInfo->query->userinfo->messages ) ) {
-			if ( class_exists( 'MediaWiki\User\TalkPageNotificationManager' ) ) {
-				// MW 1.35+
-				MediaWikiServices::getInstance()
-					->getTalkPageNotificationManager()->setUserHasNewMessages( $user );
-			} else {
-				$user->setNewtalk( true );
-			}
+			$this->talkPageNotificationManager->setUserHasNewMessages( $user );
 		}
 
 		// editcount and registrationdate cannot be set via methods on User
@@ -345,6 +413,11 @@ class ExternalWikiPrimaryAuthenticationProvider	extends AbstractPasswordPrimaryA
 		);
 	}
 
+	/**
+	 * @param Title $title
+	 * @param User $user
+	 * @param array &$jobs
+	 */
 	private function addReattributeEditsJobs( Title $title, User $user, array &$jobs ) {
 		$actor = ReattributeEdits::useActorSchema( $this->config );
 		$dbr = wfGetDB( DB_REPLICA );
@@ -453,14 +526,27 @@ class ExternalWikiPrimaryAuthenticationProvider	extends AbstractPasswordPrimaryA
 		}
 	}
 
+	/**
+	 * @inheritDoc
+	 */
 	public function beginPrimaryAccountCreation( $user, $creator, array $reqs ) {
 		throw new BadMethodCallException( 'This provider cannot be used for explicit account creation.' );
 	}
 
+	/**
+	 * @inheritDoc
+	 */
 	public function finishAccountCreation( $user, $creator, AuthenticationResponse $response ) {
 		throw new BadMethodCallException( 'This provider cannot be used for explicit account creation.' );
 	}
 
+	/**
+	 * Determine if the username exists on the remote wiki
+	 *
+	 * @param string $username
+	 * @return bool
+	 * @throws ErrorPageError|MWException
+	 */
 	public function testUserExistsRemote( $username ) {
 		if ( !isset( $this->userCache[$username] ) ) {
 			$resp = $this->apiRequest( 'GET', [
@@ -473,17 +559,25 @@ class ExternalWikiPrimaryAuthenticationProvider	extends AbstractPasswordPrimaryA
 
 			// some MediaWikis *cough*Wikia*cough* display results for allusers even if there is no exact match
 			// as such we test to ensure the username matches as well
-			$this->userCache[$username] = count( $resp->query->allusers ) === 1 && $resp->query->allusers[0]->name === $username;
+			$this->userCache[$username] = count( $resp->query->allusers ) === 1
+				&& $resp->query->allusers[0]->name === $username;
 		}
 
 		return $this->userCache[$username];
 	}
 
+	/**
+	 * @inheritDoc
+	 * @throws ErrorPageError|MWException
+	 */
 	public function testUserExists( $username, $flags = User::READ_NORMAL ) {
 		// sadly we have no other way of getting at the context here
 		$user = RequestContext::getMain()->getUser();
 		// bypass remote wiki checks; user can create local accounts
-		if ( $this->config->get( 'MediaWikiAuthDisableAccountCreation' ) || $user->isAllowed( 'mwa-createlocalaccount' ) ) {
+		if (
+			$this->config->get( 'MediaWikiAuthDisableAccountCreation' )
+			|| $user->isAllowed( 'mwa-createlocalaccount' )
+		) {
 			return false;
 		}
 
@@ -497,8 +591,8 @@ class ExternalWikiPrimaryAuthenticationProvider	extends AbstractPasswordPrimaryA
 	 * @param array $params GET parameters to add to the API URL
 	 * @param array $postData POST data
 	 * @param string $caller Caller of this method for logging purposes
-	 * @return object The parsed JSON result of the request
-	 * @throws ErrorPageError
+	 * @return stdClass The parsed JSON result of the request
+	 * @throws ErrorPageError|MWException
 	 */
 	protected function apiRequest( $method, array $params, array $postData = [], $caller = __METHOD__ ) {
 		$baseUrl = $this->config->get( 'MediaWikiAuthApiUrl' );
@@ -525,12 +619,13 @@ class ExternalWikiPrimaryAuthenticationProvider	extends AbstractPasswordPrimaryA
 		$host = $baseUrlDetails['host'];
 		$path = isset( $baseUrlDetails['path'] ) ? $baseUrlDetails['path'] : '/';
 
-		$req = MediaWikiServices::getInstance()->getHttpRequestFactory()->create( $apiUrl, $options, $caller );
+		$req = $this->httpRequestFactory->create( $apiUrl, $options, $caller );
 		$cookieHeader = $this->cookieJar->serializeToHttpRequest( $path, $host );
 		if ( $cookieHeader !== '' ) {
 			MWDebug::log( 'Cookies: ' . $cookieHeader );
-			$req->setHeader('Cookie', $cookieHeader);
+			$req->setHeader( 'Cookie', $cookieHeader );
 		}
+
 		$status = $req->execute();
 		$setCookieHeader = $req->getResponseHeader( 'Set-Cookie' );
 		if ( $setCookieHeader !== null ) {
@@ -544,7 +639,7 @@ class ExternalWikiPrimaryAuthenticationProvider	extends AbstractPasswordPrimaryA
 				// invalid JSON response, which means this isn't a valid API endpoint
 				$logger = LoggerFactory::getInstance( 'http' );
 				$logger->error( 'Unable to parse JSON response from API endpoint: ' . json_last_error_msg(),
-					[ 'endpoint' => $apiUrl, 'caller' => $caller, 'content' => $req->getContent()] );
+					[ 'endpoint' => $apiUrl, 'caller' => $caller, 'content' => $req->getContent() ] );
 				throw new ErrorPageError( 'mwa-unconfiguredtitle', 'mwa-unconfiguredtext' );
 			}
 
@@ -565,31 +660,46 @@ class ExternalWikiPrimaryAuthenticationProvider	extends AbstractPasswordPrimaryA
 		}
 	}
 
+	/**
+	 * @inheritDoc
+	 */
 	public function providerRevokeAccessForUser( $username ) {
 		// no-op; ExternalWiki authentication has no notion of revoking access, as it does not
 		// handle authentication once a local user account already exists.
 	}
 
+	/**
+	 * @inheritDoc
+	 */
 	public function providerAllowsPropertyChange( $property ) {
 		return true;
 	}
 
-	public function providerAllowsAuthenticationDataChange(
-		AuthenticationRequest $req, $checkData = true
-	)
-	{
+	/**
+	 * @inheritDoc
+	 */
+	public function providerAllowsAuthenticationDataChange( AuthenticationRequest $req, $checkData = true ) {
 		return Status::newGood( 'ignored' );
 	}
 
+	/**
+	 * @inheritDoc
+	 */
 	public function providerChangeAuthenticationData( AuthenticationRequest $req ) {
 		// no-op
 	}
 
+	/**
+	 * @inheritDoc
+	 */
 	public function accountCreationType() {
 		// while this creates accounts, it does not do so via the Special:CreateAccount UI
 		return self::TYPE_NONE;
 	}
 
+	/**
+	 * @inheritDoc
+	 */
 	protected function getPasswordResetData( $username, $data ) {
 		if ( $this->config->get( 'MediaWikiAuthDisableAccountCreation' ) ) {
 			// In this case, an account exists locally with an invalid password.
