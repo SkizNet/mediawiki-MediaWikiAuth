@@ -24,6 +24,7 @@ use Status;
 use stdClass;
 use Title;
 use User;
+use Wikimedia\Rdbms\ILoadBalancer;
 
 /**
  * Class ExternalWikiPrimaryAuthenticationProvider
@@ -55,9 +56,13 @@ class ExternalWikiPrimaryAuthenticationProvider	extends AbstractPasswordPrimaryA
 	/** @var HttpRequestFactory */
 	protected $httpRequestFactory;
 
+	/** @var ILoadBalancer */
+	protected $loadBalancer;
+
 	/**
 	 * Constructor.
 	 *
+	 * @param ILoadBalancer $loadBalancer DBLoadBalancer
 	 * @param HttpRequestFactory $httpRequestFactory
 	 * @param SkinFactory $skinFactory
 	 * @param TalkPageNotificationManager $talkPageNotificationManager
@@ -66,6 +71,7 @@ class ExternalWikiPrimaryAuthenticationProvider	extends AbstractPasswordPrimaryA
 	 * @param array $params
 	 */
 	public function __construct(
+		ILoadBalancer $loadBalancer,
 		HttpRequestFactory $httpRequestFactory,
 		SkinFactory $skinFactory,
 		TalkPageNotificationManager $talkPageNotificationManager,
@@ -81,6 +87,7 @@ class ExternalWikiPrimaryAuthenticationProvider	extends AbstractPasswordPrimaryA
 		$this->talkPageNotificationManager = $talkPageNotificationManager;
 		$this->skinFactory = $skinFactory;
 		$this->httpRequestFactory = $httpRequestFactory;
+		$this->loadBalancer = $loadBalancer;
 	}
 
 	/**
@@ -278,7 +285,7 @@ class ExternalWikiPrimaryAuthenticationProvider	extends AbstractPasswordPrimaryA
 		$watchlist = [];
 		$pagesPerJob = (int)$this->config->get( 'UpdateRowsPerJob' );
 
-		$dbw = wfGetDB( DB_MASTER );
+		$dbw = $this->loadBalancer->getConnection( DB_PRIMARY );
 		$jobs = [];
 		// not used by us, but Job constructor needs a valid Title
 		$title = $user->getUserPage();
@@ -420,7 +427,7 @@ class ExternalWikiPrimaryAuthenticationProvider	extends AbstractPasswordPrimaryA
 	 */
 	private function addReattributeEditsJobs( Title $title, User $user, array &$jobs ) {
 		$actor = ReattributeEdits::useActorSchema( $this->config );
-		$dbr = wfGetDB( DB_REPLICA );
+		$dbr = $this->loadBalancer->getConnection( DB_REPLICA );
 		$pagesPerJob = (int)$this->config->get( 'UpdateRowsPerJob' );
 
 		foreach ( ReattributeEdits::getTableMetadata() as $table => $metadata ) {

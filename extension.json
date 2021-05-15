@@ -58,12 +58,8 @@
 			"i18n"
 		]
 	},
-	"AutoloadClasses": {
-		"MediaWikiAuth\\ExternalWikiPrimaryAuthenticationProvider": "ExternalWikiPrimaryAuthenticationProvider.php",
-		"MediaWikiAuth\\PopulateImportedWatchlistJob": "PopulateImportedWatchlistJob.php",
-		"MediaWikiAuth\\ReattributeEdits": "ReattributeEdits.php",
-		"MediaWikiAuth\\ReattributeImportedEdits": "maintenance/reattributeImportedEdits.php",
-		"MediaWikiAuth\\ReattributeImportedEditsJob": "ReattributeImportedEditsJob.php"
+	"AutoloadNamespaces": {
+		"MediaWikiAuth\\": "includes/"
 	},
 	"AvailableRights": [
 		"mwa-createlocalaccount"
@@ -79,6 +75,7 @@
 				"args": [ { "authoritative": false } ],
 				"sort": 50,
 				"services": [
+					"DBLoadBalancer",
 					"HttpRequestFactory",
 					"SkinFactory",
 					"TalkPageNotificationManager",
@@ -88,5 +85,6 @@
 			}
 		}
 	},
+	"callback": "MediaWikiAuth\\Setup::callback",
 	"manifest_version": 2
 }

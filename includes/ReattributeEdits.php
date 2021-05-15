@@ -3,8 +3,6 @@
 
 namespace MediaWikiAuth;
 
-
-use Config;
 use Wikimedia\Rdbms\IDatabase;
 
 class ReattributeEdits {
@@ -14,14 +12,14 @@ class ReattributeEdits {
 			return $cached[$username];
 		}
 
-		$conds = ['a1.actor_name = a2.actor_name', 'a1.actor_user IS NULL', 'a2.actor_user IS NOT NULL'];
+		$conds = [ 'a1.actor_name = a2.actor_name', 'a1.actor_user IS NULL', 'a2.actor_user IS NOT NULL' ];
 		if ( $username !== false ) {
 			$conds['a1.actor_name'] = $username;
 		}
 
 		$res = $db->select(
-			['a1' => 'actor', 'a2' => 'actor'],
-			['old_actor' => 'a1.actor_id', 'new_actor' => 'a2.actor_id'],
+			[ 'a1' => 'actor', 'a2' => 'actor' ],
+			[ 'old_actor' => 'a1.actor_id', 'new_actor' => 'a2.actor_id' ],
 			$conds
 		);
 
@@ -51,23 +49,5 @@ class ReattributeEdits {
 		}
 
 		return $metadata;
-	}
-
-	public static function useActorSchema( Config $config ) {
-		if ( $config->has( 'ActorTableSchemaMigrationStage' ) ) {
-			// 1.31-1.33
-			$actorMigrationStage = $config->get( 'ActorTableSchemaMigrationStage' );
-		} else {
-			// 1.34+
-			$actorMigrationStage = SCHEMA_COMPAT_NEW;
-		}
-
-		if ( MIGRATION_OLD === 0 ) {
-			// 1.31
-			return $actorMigrationStage === MIGRATION_WRITE_NEW || $actorMigrationStage === MIGRATION_NEW;
-		} else {
-			// 1.32+
-			return $actorMigrationStage === SCHEMA_COMPAT_NEW;
-		}
 	}
 }

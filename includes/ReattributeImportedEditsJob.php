@@ -11,8 +11,8 @@ class ReattributeImportedEditsJob extends Job {
 	/**
 	 * Construct a new edit reattribution job.
 	 *
-	 * @param $title Title unused
-	 * @param $params array Array of the format [
+	 * @param Title $title unused
+	 * @param array $params Array of the format [
 	 *     'username' => string username of the user whose edits we are reattributing
 	 *     'table' => string table name to operate on (without prefix)
 	 *     'actor' => boolean whether to update actor ids (true) or old user id/text fields (false)
@@ -26,7 +26,9 @@ class ReattributeImportedEditsJob extends Job {
 	public function run() {
 		$user = User::newFromName( $this->params['username'] );
 		if ( $user === false || $user->getId() === 0 ) {
-			throw new BadMethodCallException( "Attempting to reattribute edits for nonexistent user {$this->params['username']}." );
+			throw new BadMethodCallException(
+				"Attempting to reattribute edits for nonexistent user {$this->params['username']}."
+			);
 		}
 
 		if ( $this->params['table'] === 'log_search' ) {
