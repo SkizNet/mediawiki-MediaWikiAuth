@@ -364,7 +364,7 @@ class ExternalWikiPrimaryAuthenticationProvider	extends AbstractPasswordPrimaryA
 					continue;
 				}
 				
-				if ( in_array( $group>expiry, ['infinite', 'indefinite', 'infinity', 'never'] ) ) {
+				if ( in_array( $group->expiry, ['infinite', 'indefinite', 'infinity', 'never'] ) ) {
 					$group->expiry = null;
 				}
 
