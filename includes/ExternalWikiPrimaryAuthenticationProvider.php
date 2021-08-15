@@ -363,6 +363,10 @@ class ExternalWikiPrimaryAuthenticationProvider	extends AbstractPasswordPrimaryA
 				if ( !in_array( $group->group, $validGroups ) ) {
 					continue;
 				}
+				
+				if ( in_array( $group>expiry, ['infinite', 'indefinite', 'infinity', 'never'] ) ) {
+					$group->expiry = null;
+				}
 
 				$this->userGroupManager->addUserToGroup( $user, $group->group, $group->expiry );
 			}
