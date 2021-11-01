@@ -2,6 +2,7 @@
 	"@metadata": {
 		"authors": [
 			"Fitoschido",
+			"Jakeukalane",
 			"KATRINE1992"
 		]
 	},
@@ -11,6 +12,6 @@
 	"mwa-finishcreate": "La cuenta se importó correctamente. Puedes establecer una contraseña nueva ahora o elegir «$1» para conservar tu contraseña actual.",
 	"mwa-finishimport-nocreate": "Se ha importado la cuenta correctamente. Define una contraseña nueva para mayor seguridad.",
 	"mwa-unconfiguredtitle": "No se configuró la extensión.",
-	"mwa-unconfiguredtext": "La extensión MediaWikiAuth no se configuró debidamente. Asegúrate de que el valor $wgMediaWikiAuthApiUrl en LocalSettings.php esté definido como el URL de la API del wiki remoto.",
+	"mwa-unconfiguredtext": "La extensión MediaWikiAuth no se configuró debidamente. Asegúrate de que el valor $wgMediaWikiAuthApiUrl en LocalSettings.php esté definido como el URL de la API de la wiki remota.",
 	"right-mwa-createlocalaccount": "Crear cuentas locales con el mismo nombre de usuario como una cuenta externa no importada"
 }
