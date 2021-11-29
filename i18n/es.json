@@ -7,8 +7,8 @@
 		]
 	},
 	"mwa-desc": "Autentica en contra e importa conexiones de un ejemplo MediaWiki externo",
-	"mwa-error-unknown": "Se produjo un error desconocido al acceder al wiki remoto.",
-	"mwa-authfail": "No se pudo acceder al wiki remoto para importar tu cuenta. Revisa que estés utilizando la contraseña correcta.",
+	"mwa-error-unknown": "Se produjo un error desconocido al acceder a la wiki remota.",
+	"mwa-authfail": "No se pudo acceder a la wiki remota para importar tu cuenta. Revisa que estés utilizando la contraseña correcta.",
 	"mwa-finishcreate": "La cuenta se importó correctamente. Puedes establecer una contraseña nueva ahora o elegir «$1» para conservar tu contraseña actual.",
 	"mwa-finishimport-nocreate": "Se ha importado la cuenta correctamente. Define una contraseña nueva para mayor seguridad.",
 	"mwa-unconfiguredtitle": "No se configuró la extensión.",
