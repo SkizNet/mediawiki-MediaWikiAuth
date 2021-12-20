@@ -3,11 +3,14 @@
 		"authors": [
 			"01miki10",
 			"Jack Phoenix",
-			"Valtlait"
+			"Valtlait",
+			"Veikk0.ma"
 		]
 	},
 	"mwa-error-unknown": "Tuntematon virhe kirjautuessa sisään etäwikiin.",
 	"mwa-authfail": "Etäwikiin kirjautuminen käyttäjätunnuksen tuontia varten ei onnistunut. Varmista, että käytät oikeaa salasanaa.",
 	"mwa-finishcreate": "Käyttäjätunnuksesi on tuotu onnistuneesti. Voit asettaa uuden salasanan nyt tai valita ”$1” säilyttääksesi nykyisen salasanasi.",
+	"mwa-unconfiguredtitle": "Laajennuksen asetuksia ei ole tehty.",
+	"mwa-unconfiguredtext": "MediaWikiAuth-laajennusen asetuksia ei ole määritelty oikein. Varmista että $wgMediaWikiAuthApiUrl on asetettu oikein LocalSettings.php-tiedostossa sen wikin rajapinnan URL-osoitteeseen, jossa haluat käyttää sitä.",
 	"right-mwa-createlocalaccount": "Luoda paikallisia käyttäjätunnuksia samalla nimellä kuin tuomaton ulkoinen käyttäjätunnus"
 }
