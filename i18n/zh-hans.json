@@ -4,6 +4,7 @@
 			"A Retired User",
 			"Liuxinyu970226",
 			"SomeyaMako",
+			"Tranve",
 			"予弦",
 			"佛壁灯",
 			"神樂坂秀吉"
@@ -14,8 +15,8 @@
 	"mwa-authfail": "无法登录远程wiki导入您的账户。请确保您在使用正确的密码。",
 	"mwa-authfail2": "无法登陆远程Wiki以导入您的账户，因为远端Wiki遇到了以下错误：$1",
 	"mwa-finishcreate": "您的账户已成功导入。您现在可以设置新密码，或选择“$1”以继续使用您当前的密码。",
-	"mwa-finishimport-nocreate": "您的账户已成功导入。请设置新密码确保账户的安全性。",
+	"mwa-finishimport-nocreate": "您的账号已成功导入。请设置新密码确保账号的安全性。",
 	"mwa-unconfiguredtitle": "扩展未配置。",
 	"mwa-unconfiguredtext": "MediaWikiAuth未正确配置。请确保在您的LocalSettings.php中，将$wgMediaWikiAuthApiUrl设置为远程wiki的API URL。",
-	"right-mwa-createlocalaccount": "使用与未导入外部账户相同的用户名创建本地账户"
+	"right-mwa-createlocalaccount": "使用与未导入外部账号相同的用户名创建本地账号"
 }
