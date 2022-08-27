@@ -138,9 +138,9 @@ class ExternalWikiPrimaryAuthenticationProvider	extends AbstractPasswordPrimaryA
 			// and is not a system user (system users have invalid tokens and no email).
 			// We can't directly check for invalid tokens, but getToken() returns random results on each
 			// call for system users, so that acts as a good proxy for an invalid token test.
-			// @phan-suppress-next-line PhanPluginDuplicateExpressionBinaryOp
 			if ( $existingUser->getId() === 0
 				|| $this->manager->userCanAuthenticate( $username )
+				// @phan-suppress-next-line PhanPluginDuplicateExpressionBinaryOp
 				|| ( !$existingUser->getEmail() && $existingUser->getToken() !== $existingUser->getToken() )
 			) {
 				return AuthenticationResponse::newAbstain();
@@ -424,8 +424,10 @@ class ExternalWikiPrimaryAuthenticationProvider	extends AbstractPasswordPrimaryA
 		$validOptions = $this->userOptionsManager->getOptions( $user );
 		if ( method_exists( $this->skinFactory, 'getAllowedSkins' ) ) {
 			// MW 1.36
+			// @phan-suppress-next-line PhanUndeclaredMethod
 			$validSkins = array_keys( $this->skinFactory->getAllowedSkins() );
 		} else {
+			// @phan-suppress-next-line PhanUndeclaredStaticMethod
 			$validSkins = array_keys( Skin::getAllowedSkins() );
 		}
 		$optionBlacklist = [ 'watchlisttoken' ];

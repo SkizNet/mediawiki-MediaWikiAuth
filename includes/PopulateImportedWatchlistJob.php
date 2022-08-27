@@ -4,6 +4,8 @@ namespace MediaWikiAuth;
 
 use BadMethodCallException;
 use Job;
+use MediaWiki\MediaWikiServices;
+use MWException;
 use Title;
 use User;
 
@@ -46,7 +48,17 @@ class PopulateImportedWatchlistJob extends Job {
 				continue;
 			}
 
-			$user->addWatch( $title, User::IGNORE_USER_RIGHTS );
+			$watchedItemStore = MediaWikiServices::getInstance()->getWatchedItemStore();
+			$namespaceInfo = MediaWikiServices::getInstance()->getNamespaceInfo();
+			$pages = [ $namespaceInfo->getSubjectPage( $title ) ];
+
+			try {
+				$pages[] = $namespaceInfo->getTalkPage( $title );
+			} catch ( MWException $e ) {
+				// no-op if the title can't have a talk page
+			}
+
+			$watchedItemStore->addWatchBatchForUser( $user, $pages );
 		}
 
 		return true;

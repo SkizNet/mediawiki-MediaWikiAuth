@@ -8,4 +8,8 @@ $cfg = require __DIR__ . '/../../../vendor/mediawiki/mediawiki-phan-config/src/c
 $cfg['suppress_issue_types'][] = 'UnusedSuppression';
 $cfg['suppress_issue_types'][] = 'UnusedPluginSuppression';
 
+// there are some methods we always throw exceptions in,
+// but do not wish to modify the original doc comment's return type
+$cfg['suppress_issue_types'][] = 'PhanPluginNeverReturnMethod';
+
 return $cfg;
