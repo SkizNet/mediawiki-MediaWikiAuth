@@ -138,6 +138,7 @@ class ExternalWikiPrimaryAuthenticationProvider	extends AbstractPasswordPrimaryA
 			// and is not a system user (system users have invalid tokens and no email).
 			// We can't directly check for invalid tokens, but getToken() returns random results on each
 			// call for system users, so that acts as a good proxy for an invalid token test.
+			// @phan-suppress-next-line PhanPluginDuplicateExpressionBinaryOp
 			if ( $existingUser->getId() === 0
 				|| $this->manager->userCanAuthenticate( $username )
 				|| ( !$existingUser->getEmail() && $existingUser->getToken() !== $existingUser->getToken() )
@@ -394,8 +395,8 @@ class ExternalWikiPrimaryAuthenticationProvider	extends AbstractPasswordPrimaryA
 				if ( !in_array( $group->group, $validGroups ) ) {
 					continue;
 				}
-				
-				if ( in_array( $group->expiry, ['infinite', 'indefinite', 'infinity', 'never'] ) ) {
+
+				if ( in_array( $group->expiry, [ 'infinite', 'indefinite', 'infinity', 'never' ] ) ) {
 					$group->expiry = null;
 				}
 

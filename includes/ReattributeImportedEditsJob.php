@@ -56,6 +56,10 @@ class ReattributeImportedEditsJob extends Job {
 		return true;
 	}
 
+	/**
+	 * @param User $user
+	 * @return bool
+	 */
 	private function runLogSearch( User $user ) {
 		$dbw = wfGetDB( DB_PRIMARY );
 		$setList = [];
