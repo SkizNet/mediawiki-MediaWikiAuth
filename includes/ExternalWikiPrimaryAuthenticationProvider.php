@@ -3,7 +3,6 @@
 namespace MediaWikiAuth;
 
 use BadMethodCallException;
-use CookieJar;
 use ErrorPageError;
 use JobQueueGroup;
 use MediaWiki\Auth\AbstractPasswordPrimaryAuthenticationProvider;
@@ -32,9 +31,6 @@ use Wikimedia\Rdbms\ILoadBalancer;
  * @stable to extend (public/protected API versioned with semver)
  */
 class ExternalWikiPrimaryAuthenticationProvider	extends AbstractPasswordPrimaryAuthenticationProvider {
-	/** @var CookieJar */
-	protected $cookieJar;
-
 	/** @var array Cache of users we've already looked up in the API */
 	private $userCache = [];
 
@@ -81,7 +77,6 @@ class ExternalWikiPrimaryAuthenticationProvider	extends AbstractPasswordPrimaryA
 	) {
 		parent::__construct( $params );
 
-		$this->cookieJar = new CookieJar();
 		$this->userGroupManager = $userGroupManager;
 		$this->userOptionsManager = $userOptionsManager;
 		$this->talkPageNotificationManager = $talkPageNotificationManager;
@@ -637,23 +632,8 @@ class ExternalWikiPrimaryAuthenticationProvider	extends AbstractPasswordPrimaryA
 			MWDebug::log( 'POST data: ' . json_encode( $postData ) );
 		}
 
-		// Handle cookies manually. Guzzle's cookie handling is broken in 1.34.
-		$baseUrlDetails = wfParseUrl( $baseUrl );
-		$host = $baseUrlDetails['host'];
-		$path = isset( $baseUrlDetails['path'] ) ? $baseUrlDetails['path'] : '/';
-
 		$req = $this->httpRequestFactory->create( $apiUrl, $options, $caller );
-		$cookieHeader = $this->cookieJar->serializeToHttpRequest( $path, $host );
-		if ( $cookieHeader !== '' ) {
-			MWDebug::log( 'Cookies: ' . $cookieHeader );
-			$req->setHeader( 'Cookie', $cookieHeader );
-		}
-
 		$status = $req->execute();
-		$setCookieHeader = $req->getResponseHeader( 'Set-Cookie' );
-		if ( $setCookieHeader !== null ) {
-			$this->cookieJar->parseCookieResponseHeader( $setCookieHeader, $host );
-		}
 
 		if ( $status->isOK() ) {
 			$content = json_decode( $req->getContent() );
@@ -667,9 +647,6 @@ class ExternalWikiPrimaryAuthenticationProvider	extends AbstractPasswordPrimaryA
 			}
 
 			MWDebug::log( 'API Response: ' . $req->getContent() );
-			if ( $setCookieHeader !== null ) {
-				MWDebug::log( 'Response Cookies: ' . $setCookieHeader );
-			}
 
 			return $content;
 		} else {
