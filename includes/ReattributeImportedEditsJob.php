@@ -15,7 +15,6 @@ class ReattributeImportedEditsJob extends Job {
 	 * @param array $params Array of the format [
 	 *     'username' => string username of the user whose edits we are reattributing
 	 *     'table' => string table name to operate on (without prefix)
-	 *     'actor' => boolean whether to update actor ids (true) or old user id/text fields (false)
 	 *     'ids' => array of row ids in the table to update this job
 	 * ]
 	 */
@@ -37,30 +36,20 @@ class ReattributeImportedEditsJob extends Job {
 			return $this->runLogSearch( $user );
 		}
 
-		$dbw = wfGetDB( DB_MASTER );
+		$dbw = wfGetDB( DB_PRIMARY );
 		[ $tableKey, $actorKey, $userText, $userKey ] = ReattributeEdits::getTableMetadata( $this->params['table'] );
 
 		$setList = [];
 		$conds = [ $tableKey => $this->params['ids'] ];
 
-		if ( $this->params['actor'] ) {
-			if ( $actorKey === null ) {
-				// table doesn't support actors, skip it
-				return true;
-			}
-
-			[ $oldActor, $newActor ] = ReattributeEdits::getActorMigrationData( $dbw, $user->getName() );
-			$setList[$actorKey] = $newActor;
-			$conds[$actorKey] = $oldActor;
-		} else {
-			if ( $userKey === null ) {
-				// table doesn't support pre-actor, skip it
-				return true;
-			}
-
-			$setList[$userKey] = $user->getId();
-			$conds[$userText] = $user->getName();
+		if ( $actorKey === null ) {
+			// table doesn't support actors, skip it
+			return true;
 		}
+
+		[ $oldActor, $newActor ] = ReattributeEdits::getActorMigrationData( $dbw, $user->getName() );
+		$setList[$actorKey] = $newActor;
+		$conds[$actorKey] = $oldActor;
 
 		$dbw->update( $this->params['table'], $setList, $conds, __METHOD__ );
 
@@ -68,21 +57,14 @@ class ReattributeImportedEditsJob extends Job {
 	}
 
 	private function runLogSearch( User $user ) {
-		$dbw = wfGetDB( DB_MASTER );
+		$dbw = wfGetDB( DB_PRIMARY );
 		$setList = [];
 		$conds = [ 'ls_log_id' => $this->params['ids'] ];
 
-		if ( $this->params['actor'] ) {
-			[ $oldActor, $newActor ] = ReattributeEdits::getActorMigrationData( $dbw, $user->getName() );
-			$setList['ls_value'] = $newActor;
-			$conds['ls_value'] = $oldActor;
-			$conds['ls_field'] = 'target_author_actor';
-		} else {
-			$setList['ls_value'] = $user->getId();
-			$setList['ls_type'] = 'target_author_id';
-			$conds['ls_value'] = $user->getName();
-			$conds['ls_field'] = 'target_author_ip';
-		}
+		[ $oldActor, $newActor ] = ReattributeEdits::getActorMigrationData( $dbw, $user->getName() );
+		$setList['ls_value'] = $newActor;
+		$conds['ls_value'] = $oldActor;
+		$conds['ls_field'] = 'target_author_actor';
 
 		$dbw->update( $this->params['table'], $setList, $conds, __METHOD__ );
 

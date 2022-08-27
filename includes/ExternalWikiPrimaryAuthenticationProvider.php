@@ -116,16 +116,25 @@ class ExternalWikiPrimaryAuthenticationProvider	extends AbstractPasswordPrimaryA
 			return AuthenticationResponse::newAbstain();
 		}
 
+		// Test if we were given a bot name and password (aka if the username contains @)
+		$botName = null;
+		if ( strpos( $req->username, '@' ) !== false ) {
+			[ $username, $botName ] = explode( '@', $req->username, 2 );
+			$req->username = $username;
+		}
+
 		// Get an existing local user for this username. Depending on config,
 		// we either block auth if a local user exists, or only allow auth against
 		// local users (with currently-invalid passwords)
 		$existingUser = User::newFromName( $req->username, 'usable' );
-		$username = $existingUser->getName();
 
 		// if $existingUser is false, the username is invalid
 		if ( $existingUser === false ) {
 			return AuthenticationResponse::newAbstain();
 		}
+
+		// Get canonical form of username
+		$username = $existingUser->getName();
 
 		if ( $this->config->get( 'MediaWikiAuthDisableAccountCreation' ) ) {
 			// Only perform account import on already-existing local accounts,
@@ -191,6 +200,33 @@ class ExternalWikiPrimaryAuthenticationProvider	extends AbstractPasswordPrimaryA
 				$this->manager->removeAuthenticationSessionData( self::PWKEY );
 				return AuthenticationResponse::newFail( wfMessage( 'mwa-authfail' ) );
 			}
+		} elseif ( $botName !== null ) {
+			// use login API with a BotPassword
+
+			// Step 1. Grab a login token
+			$resp = $this->apiRequest( 'GET', [
+				'action' => 'query',
+				'meta' => 'tokens',
+				'type' => 'login'
+			], [], __METHOD__ );
+			$loginToken = $resp->query->tokens->logintoken;
+
+			// Step 2. use action=login with the bot name and password
+			$resp = $this->apiRequest( 'POST', [
+				'action' => 'login'
+			], [
+				'lgname' => $username . '@' . $botName,
+				'lgpassword' => $req->password,
+				'lgtoken' => $loginToken
+			], __METHOD__ );
+
+			if ( $resp->login->result !== 'Success' ) {
+				$this->logger->info(
+					'Authentication against BotPassword remote API failed for reason ' . $resp->login->result,
+					[ 'remoteVersion' => $remoteVersion, 'caller' => __METHOD__, 'username' => $username ] );
+				$this->manager->removeAuthenticationSessionData( self::PWKEY );
+				return AuthenticationResponse::newFail( wfMessage( 'mwa-authfail' ) );
+			}
 		} else {
 			// use new clientlogin API.
 			// TODO: We do not currently support things that inject into the auth flow,
@@ -234,7 +270,7 @@ class ExternalWikiPrimaryAuthenticationProvider	extends AbstractPasswordPrimaryA
 
 		// Remote login was successful, an account will be automatically created for the user by the system
 		// Mark them as (maybe) needing to reset their password as a secondary auth step.
-		if ( $this->config->get( 'MediaWikiAuthAllowPasswordChange' ) ) {
+		if ( $this->config->get( 'MediaWikiAuthAllowPasswordChange' ) || $botName !== null ) {
 			$this->setPasswordResetFlag( $username, Status::newGood() );
 		}
 
@@ -430,7 +466,6 @@ class ExternalWikiPrimaryAuthenticationProvider	extends AbstractPasswordPrimaryA
 	 * @param array &$jobs
 	 */
 	private function addReattributeEditsJobs( Title $title, User $user, array &$jobs ) {
-		$actor = ReattributeEdits::useActorSchema( $this->config );
 		$dbr = $this->loadBalancer->getConnection( DB_REPLICA );
 		$pagesPerJob = (int)$this->config->get( 'UpdateRowsPerJob' );
 
@@ -438,27 +473,18 @@ class ExternalWikiPrimaryAuthenticationProvider	extends AbstractPasswordPrimaryA
 			[ $tableKey, $actorKey, $userText, $userKey ] = $metadata;
 
 			// determine which records need to be updated
-			if ( $actor ) {
-				$data = ReattributeEdits::getActorMigrationData( $dbr, $user->getName() );
-				if ( $data === [] ) {
-					// nothing to reattribute
-					return;
-				}
-
-				$res = $dbr->select(
-					$table,
-					$tableKey,
-					[ $actorKey => array_keys( $data ) ],
-					__METHOD__ . ':populateJobs'
-				);
-			} else {
-				$res = $dbr->select(
-					$table,
-					$tableKey,
-					[ $userText => $user->getName(), $userKey => 0 ],
-					__METHOD__ . ':populateJobs'
-				);
+			$data = ReattributeEdits::getActorMigrationData( $dbr, $user->getName() );
+			if ( $data === [] ) {
+				// nothing to reattribute
+				return;
 			}
+
+			$res = $dbr->select(
+				$table,
+				$tableKey,
+				[ $actorKey => array_keys( $data ) ],
+				__METHOD__ . ':populateJobs'
+			);
 
 			// generate our jobs, in appropriate batch sizes
 			$counter = 0;
@@ -471,7 +497,6 @@ class ExternalWikiPrimaryAuthenticationProvider	extends AbstractPasswordPrimaryA
 					$jobs[] = new ReattributeImportedEditsJob( $title, [
 						'username' => $user->getName(),
 						'table' => $table,
-						'actor' => $actor,
 						'ids' => $ids
 					] );
 					$counter = 0;
@@ -483,31 +508,20 @@ class ExternalWikiPrimaryAuthenticationProvider	extends AbstractPasswordPrimaryA
 				$jobs[] = new ReattributeImportedEditsJob( $title, [
 					'username' => $user->getName(),
 					'table' => $table,
-					'actor' => $actor,
 					'ids' => $ids
 				] );
 			}
 		}
 
 		// handle log_search table specially since it doesn't conform to the other tables we update
-		if ( $actor ) {
-			$data = ReattributeEdits::getActorMigrationData( $dbr, $user->getName() );
-			$res = $dbr->select(
-				'log_search',
-				'ls_log_id',
-				[ 'ls_field' => 'target_author_actor', 'ls_value' => array_keys( $data ) ],
-				__METHOD__ . ':populateJobs',
-				[ 'DISTINCT' ]
-			);
-		} else {
-			$res = $dbr->select(
-				'log_search',
-				'ls_log_id',
-				[ 'ls_field' => 'target_author_ip', 'ls_value' => $user->getName() ],
-				__METHOD__ . ':populateJobs',
-				[ 'DISTINCT' ]
-			);
-		}
+		$data = ReattributeEdits::getActorMigrationData( $dbr, $user->getName() );
+		$res = $dbr->select(
+			'log_search',
+			'ls_log_id',
+			[ 'ls_field' => 'target_author_actor', 'ls_value' => array_keys( $data ) ],
+			__METHOD__ . ':populateJobs',
+			[ 'DISTINCT' ]
+		);
 
 		$counter = 0;
 		$ids = [];
@@ -519,7 +533,6 @@ class ExternalWikiPrimaryAuthenticationProvider	extends AbstractPasswordPrimaryA
 				$jobs[] = new ReattributeImportedEditsJob( $title, [
 					'username' => $user->getName(),
 					'table' => 'log_search',
-					'actor' => $actor,
 					'ids' => $ids
 				] );
 				$counter = 0;
@@ -531,7 +544,6 @@ class ExternalWikiPrimaryAuthenticationProvider	extends AbstractPasswordPrimaryA
 			$jobs[] = new ReattributeImportedEditsJob( $title, [
 				'username' => $user->getName(),
 				'table' => 'log_search',
-				'actor' => $actor,
 				'ids' => $ids
 			] );
 		}
