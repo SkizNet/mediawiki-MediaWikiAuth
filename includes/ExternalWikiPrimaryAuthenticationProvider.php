@@ -106,6 +106,11 @@ class ExternalWikiPrimaryAuthenticationProvider	extends AbstractPasswordPrimaryA
 	 * @throws ErrorPageError|MWException
 	 */
 	public function beginPrimaryAuthentication( array $reqs ) {
+		// Enforce a password reset if accounts already exist locally with invalid hashes
+		// Logging in with a Bot Password will also force a reset (handled later on in the function)
+		$passwordResetData = new stdClass();
+		$passwordResetData->hard = $this->config->get( 'MediaWikiAuthDisableAccountCreation' );
+
 		/** @var PasswordAuthenticationRequest $req */
 		$req = AuthenticationRequest::getRequestByClass( $reqs, PasswordAuthenticationRequest::class );
 		if ( !$req ) {
@@ -221,6 +226,9 @@ class ExternalWikiPrimaryAuthenticationProvider	extends AbstractPasswordPrimaryA
 				'lgtoken' => $loginToken
 			], __METHOD__ );
 
+			// require a password reset if logging in with a bot password
+			$passwordResetData->hard = true;
+
 			if ( $resp->login->result !== 'Success' ) {
 				$this->logger->info(
 					'Authentication against BotPassword remote API failed for reason ' . $resp->login->result,
@@ -271,8 +279,8 @@ class ExternalWikiPrimaryAuthenticationProvider	extends AbstractPasswordPrimaryA
 
 		// Remote login was successful, an account will be automatically created for the user by the system
 		// Mark them as (maybe) needing to reset their password as a secondary auth step.
-		if ( $this->config->get( 'MediaWikiAuthAllowPasswordChange' ) || $botName !== null ) {
-			$this->setPasswordResetFlag( $username, Status::newGood() );
+		if ( $this->config->get( 'MediaWikiAuthAllowPasswordChange' ) || $passwordResetData->hard ) {
+			$this->setPasswordResetFlag( $username, Status::newGood(), $passwordResetData );
 		}
 
 		return AuthenticationResponse::newPass( $username );
@@ -710,7 +718,7 @@ class ExternalWikiPrimaryAuthenticationProvider	extends AbstractPasswordPrimaryA
 	 * @inheritDoc
 	 */
 	protected function getPasswordResetData( $username, $data ) {
-		if ( $this->config->get( 'MediaWikiAuthDisableAccountCreation' ) ) {
+		if ( isset( $data->hard ) && $data->hard ) {
 			// In this case, an account exists locally with an invalid password.
 			// The user must reset their password to something valid or
 			// they will be unable to log in, and it'll try to fire off another import.
