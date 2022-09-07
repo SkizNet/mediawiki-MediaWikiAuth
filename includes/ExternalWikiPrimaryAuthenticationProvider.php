@@ -3,6 +3,7 @@
 namespace MediaWikiAuth;
 
 use BadMethodCallException;
+use CookieJar;
 use ErrorPageError;
 use JobQueueGroup;
 use MediaWiki\Auth\AbstractPasswordPrimaryAuthenticationProvider;
@@ -55,6 +56,9 @@ class ExternalWikiPrimaryAuthenticationProvider	extends AbstractPasswordPrimaryA
 	/** @var ILoadBalancer */
 	protected $loadBalancer;
 
+	/** @var CookieJar */
+	private $cookieJar;
+
 	/**
 	 * Constructor.
 	 *
@@ -83,6 +87,7 @@ class ExternalWikiPrimaryAuthenticationProvider	extends AbstractPasswordPrimaryA
 		$this->skinFactory = $skinFactory;
 		$this->httpRequestFactory = $httpRequestFactory;
 		$this->loadBalancer = $loadBalancer;
+		$this->cookieJar = new CookieJar();
 	}
 
 	/**
@@ -636,6 +641,7 @@ class ExternalWikiPrimaryAuthenticationProvider	extends AbstractPasswordPrimaryA
 		}
 
 		$req = $this->httpRequestFactory->create( $apiUrl, $options, $caller );
+		$req->setCookieJar( $this->cookieJar );
 		$status = $req->execute();
 
 		if ( $status->isOK() ) {
