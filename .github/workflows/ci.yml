@@ -21,8 +21,11 @@ jobs:
       matrix:
         os: [ ubuntu-latest ]
         php: [ '7.4' ]
-        mediawiki: [ REL1_35, REL1_37, REL1_38, master ]
+        mediawiki: [ REL1_35, REL1_37, REL1_38, REL1_39, master ]
         include:
+          - os: ubuntu-latest
+            mediawiki: REL1_39
+            php: '8.1'
           - os: ubuntu-latest
             mediawiki: master
             php: '8.1'
@@ -61,8 +64,11 @@ jobs:
       matrix:
         os: [ ubuntu-latest ]
         php: [ '7.4' ]
-        mediawiki: [ REL1_35, REL1_37, REL1_38, master ]
+        mediawiki: [ REL1_35, REL1_37, REL1_38, REL1_39, master ]
         include:
+          - os: ubuntu-latest
+            mediawiki: REL1_39
+            php: '8.1'
           - os: ubuntu-latest
             mediawiki: master
             php: '8.1'

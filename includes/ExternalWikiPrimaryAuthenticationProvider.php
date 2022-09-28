@@ -56,6 +56,9 @@ class ExternalWikiPrimaryAuthenticationProvider	extends AbstractPasswordPrimaryA
 	/** @var ILoadBalancer */
 	protected $loadBalancer;
 
+	/** @var \MediaWiki\JobQueue\JobQueueGroupFactory */
+	private $jobQueueGroupFactory;
+
 	/** @var CookieJar */
 	private $cookieJar;
 
@@ -68,6 +71,7 @@ class ExternalWikiPrimaryAuthenticationProvider	extends AbstractPasswordPrimaryA
 	 * @param TalkPageNotificationManager $talkPageNotificationManager
 	 * @param UserGroupManager $userGroupManager
 	 * @param UserOptionsManager $userOptionsManager
+	 * @param ?\MediaWiki\JobQueue\JobQueueGroupFactory $jobQueueGroupFactory
 	 * @param array $params
 	 */
 	public function __construct(
@@ -77,6 +81,7 @@ class ExternalWikiPrimaryAuthenticationProvider	extends AbstractPasswordPrimaryA
 		TalkPageNotificationManager $talkPageNotificationManager,
 		UserGroupManager $userGroupManager,
 		UserOptionsManager $userOptionsManager,
+		$jobQueueGroupFactory,
 		array $params = []
 	) {
 		parent::__construct( $params );
@@ -87,6 +92,7 @@ class ExternalWikiPrimaryAuthenticationProvider	extends AbstractPasswordPrimaryA
 		$this->skinFactory = $skinFactory;
 		$this->httpRequestFactory = $httpRequestFactory;
 		$this->loadBalancer = $loadBalancer;
+		$this->jobQueueGroupFactory = $jobQueueGroupFactory;
 		$this->cookieJar = new CookieJar();
 	}
 
@@ -402,7 +408,7 @@ class ExternalWikiPrimaryAuthenticationProvider	extends AbstractPasswordPrimaryA
 			}
 
 			if ( $jobs !== [] ) {
-				JobQueueGroup::singleton()->push( $jobs );
+				$this->pushJobs( $jobs );
 			}
 		}
 
@@ -466,7 +472,7 @@ class ExternalWikiPrimaryAuthenticationProvider	extends AbstractPasswordPrimaryA
 
 		$validOptions = $this->userOptionsManager->getOptions( $user );
 		if ( method_exists( $this->skinFactory, 'getAllowedSkins' ) ) {
-			// MW 1.36
+			// 1.36+
 			// @phan-suppress-next-line PhanUndeclaredMethod
 			$validSkins = array_keys( $this->skinFactory->getAllowedSkins() );
 		} else {
@@ -585,6 +591,23 @@ class ExternalWikiPrimaryAuthenticationProvider	extends AbstractPasswordPrimaryA
 		}
 
 		if ( $jobs !== [] ) {
+			$this->pushJobs( $jobs );
+		}
+	}
+
+	/**
+	 * Back-compat wrapper to add jobs to the job queue
+	 *
+	 * @param array $jobs
+	 * @return void
+	 */
+	protected function pushJobs( array $jobs ) {
+		if ( $this->jobQueueGroupFactory !== null ) {
+			// 1.37+
+			// @phan-suppress-next-line PhanUndeclaredMethod
+			$this->jobQueueGroupFactory->makeJobQueueGroup()->push( $jobs );
+		} else {
+			// @phan-suppress-next-line PhanUndeclaredStaticMethod
 			JobQueueGroup::singleton()->push( $jobs );
 		}
 	}

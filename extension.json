@@ -95,6 +95,9 @@
 					"TalkPageNotificationManager",
 					"UserGroupManager",
 					"UserOptionsManager"
+				],
+				"optional_services": [
+					"JobQueueGroupFactory"
 				]
 			}
 		}
