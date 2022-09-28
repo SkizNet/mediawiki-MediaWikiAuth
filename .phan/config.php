@@ -14,6 +14,6 @@ $cfg['suppress_issue_types'][] = 'PhanPluginNeverReturnMethod';
 
 // needed for backwards compatibility checks while still enabling good IDE completion
 $cfg['suppress_issue_types'][] = 'PhanUndeclaredTypeProperty';
-
+$cfg['suppress_issue_types'][] = 'PhanUndeclaredTypeParameter';
 
 return $cfg;
