@@ -12,4 +12,8 @@ $cfg['suppress_issue_types'][] = 'UnusedPluginSuppression';
 // but do not wish to modify the original doc comment's return type
 $cfg['suppress_issue_types'][] = 'PhanPluginNeverReturnMethod';
 
+// needed for backwards compatibility checks while still enabling good IDE completion
+$cfg['suppress_issue_types'][] = 'PhanUndeclaredTypeProperty';
+
+
 return $cfg;

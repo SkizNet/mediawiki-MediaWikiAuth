@@ -56,7 +56,7 @@ class ExternalWikiPrimaryAuthenticationProvider	extends AbstractPasswordPrimaryA
 	/** @var ILoadBalancer */
 	protected $loadBalancer;
 
-	/** @var \MediaWiki\JobQueue\JobQueueGroupFactory */
+	/** @var ?\MediaWiki\JobQueue\JobQueueGroupFactory */
 	private $jobQueueGroupFactory;
 
 	/** @var CookieJar */
@@ -604,7 +604,7 @@ class ExternalWikiPrimaryAuthenticationProvider	extends AbstractPasswordPrimaryA
 	protected function pushJobs( array $jobs ) {
 		if ( $this->jobQueueGroupFactory !== null ) {
 			// 1.37+
-			// @phan-suppress-next-line PhanUndeclaredMethod
+			// @phan-suppress-next-line PhanUndeclaredClassMethod
 			$this->jobQueueGroupFactory->makeJobQueueGroup()->push( $jobs );
 		} else {
 			// @phan-suppress-next-line PhanUndeclaredStaticMethod

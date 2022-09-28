@@ -24,11 +24,11 @@ jobs:
         mediawiki: [ REL1_35, REL1_37, REL1_38, REL1_39, master ]
         include:
           - os: ubuntu-latest
+            php: '8.1'
             mediawiki: REL1_39
-            php: '8.1'
           - os: ubuntu-latest
-            mediawiki: master
             php: '8.1'
+            mediawiki: master
     steps:
       - name: Setup PHP
         uses: shivammathur/setup-php@v2
@@ -67,11 +67,11 @@ jobs:
         mediawiki: [ REL1_35, REL1_37, REL1_38, REL1_39, master ]
         include:
           - os: ubuntu-latest
+            php: '8.1'
             mediawiki: REL1_39
-            php: '8.1'
           - os: ubuntu-latest
-            mediawiki: master
             php: '8.1'
+            mediawiki: master
     steps:
       - name: Setup PHP
         uses: shivammathur/setup-php@v2
