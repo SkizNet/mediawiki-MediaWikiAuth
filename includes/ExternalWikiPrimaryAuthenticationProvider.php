@@ -283,6 +283,14 @@ class ExternalWikiPrimaryAuthenticationProvider	extends AbstractPasswordPrimaryA
 			$this->setPasswordResetFlag( $username, Status::newGood(), $passwordResetData );
 		}
 
+		// If this was a stub user, import their data now
+		if ( $existingUser->getId() !== 0 ) {
+			if ( $this->importData( $existingUser ) !== null ) {
+				// import successful, save updated options
+				$existingUser->saveSettings();
+			}
+		}
+
 		return AuthenticationResponse::newPass( $username );
 	}
 
@@ -292,7 +300,6 @@ class ExternalWikiPrimaryAuthenticationProvider	extends AbstractPasswordPrimaryA
 	 * @param User $user
 	 * @param string $source
 	 * @return void
-	 * @throws ErrorPageError|MWException
 	 */
 	public function autoCreatedAccount( $user, $source ) {
 		if ( $source !== __CLASS__ ) {
@@ -311,7 +318,37 @@ class ExternalWikiPrimaryAuthenticationProvider	extends AbstractPasswordPrimaryA
 
 		// $user->saveChanges() is called automatically after this runs,
 		// so calling it ourselves is not necessary.
-		// This is where we fetch user preferences and watchlist to save locally.
+		$userInfo = $this->importData( $user );
+
+		if ( $this->config->get( 'MediaWikiAuthReattributeEdits' ) ) {
+			$this->addReattributeEditsJobs( $user->getUserPage(), $user );
+		}
+
+		// editcount and registrationdate cannot be set via methods on User
+		if ( $userInfo !== null ) {
+			$dbw = $this->loadBalancer->getConnection( DB_PRIMARY );
+			$dbw->update(
+				'user',
+				[
+					'user_editcount' => $userInfo->query->userinfo->editcount,
+					'user_registration' => $dbw->timestamp( $userInfo->query->userinfo->registrationdate )
+				],
+				[ 'user_id' => $user->getId() ],
+				__METHOD__
+			);
+		}
+	}
+
+	/**
+	 * Import data from the remote wiki for the given user, based on configuration:
+	 * - watchlist
+	 * - preferences
+	 * - groups
+	 *
+	 * @param User $user
+	 * @return ?stdClass API response, or null on error
+	 */
+	private function importData( User $user ) {
 		$userInfo = $this->apiRequest( 'GET', [
 			'action' => 'query',
 			'meta' => 'userinfo',
@@ -330,13 +367,10 @@ class ExternalWikiPrimaryAuthenticationProvider	extends AbstractPasswordPrimaryA
 		$watchlist = [];
 		$pagesPerJob = (int)$this->config->get( 'UpdateRowsPerJob' );
 
-		$dbw = $this->loadBalancer->getConnection( DB_PRIMARY );
-		$jobs = [];
-		// not used by us, but Job constructor needs a valid Title
-		$title = $user->getUserPage();
-
 		// enqueue jobs to actually add watchlist items and to reattribute already-existing edits (if enabled)
 		if ( $this->config->get( 'MediaWikiAuthImportWatchlist' ) ) {
+			$jobs = [];
+
 			while ( true ) {
 				$resp = $this->apiRequest( 'GET', $wrquery, [], __METHOD__ );
 				if ( isset( $resp->error ) ) {
@@ -361,19 +395,15 @@ class ExternalWikiPrimaryAuthenticationProvider	extends AbstractPasswordPrimaryA
 				// array_splice reduces the size of $watchlist and returns the removed elements.
 				// This avoids memory bloat so that we only keep the watchlist resident in memory one time.
 				$slice = array_splice( $watchlist, 0, $pagesPerJob );
-				$jobs[] = new PopulateImportedWatchlistJob( $title, [
+				$jobs[] = new PopulateImportedWatchlistJob( $user->getUserPage(), [
 					'username' => $user->getName(),
 					'pages' => $slice
 				] );
 			}
-		}
 
-		if ( $this->config->get( 'MediaWikiAuthReattributeEdits' ) ) {
-			$this->addReattributeEditsJobs( $title, $user, $jobs );
-		}
-
-		if ( $jobs !== [] ) {
-			JobQueueGroup::singleton()->push( $jobs );
+			if ( $jobs !== [] ) {
+				JobQueueGroup::singleton()->push( $jobs );
+			}
 		}
 
 		if ( isset( $userInfo->error ) ) {
@@ -382,7 +412,7 @@ class ExternalWikiPrimaryAuthenticationProvider	extends AbstractPasswordPrimaryA
 				$userInfo->error
 			);
 
-			return;
+			return null;
 		}
 
 		// groupmemberships contains groups and expiries, but is only present in recent versions of MW.
@@ -443,10 +473,18 @@ class ExternalWikiPrimaryAuthenticationProvider	extends AbstractPasswordPrimaryA
 			// @phan-suppress-next-line PhanUndeclaredStaticMethod
 			$validSkins = array_keys( Skin::getAllowedSkins() );
 		}
-		$optionBlacklist = [ 'watchlisttoken' ];
+
+		$optionImportList = $this->config->get( 'MediaWikiAuthImportOptions' );
+		$optionSkipList = $this->config->get( 'MediaWikiAuthSkipOptions' );
+		if ( in_array( '*', $optionImportList ) ) {
+			$optionImportList = array_merge( $optionImportList, $validOptions );
+		}
+
+		$optionSkipList[] = 'watchlisttoken';
+		$optionList = array_diff( $optionImportList, $optionSkipList );
 
 		foreach ( $userInfo->query->userinfo->options as $option => $value ) {
-			if ( !in_array( $option, $optionBlacklist )
+			if ( in_array( $option, $optionList )
 				&& ( $option !== 'skin' || in_array( $value, $validSkins ) )
 				&& array_key_exists( $option, $validOptions )
 				&& $validOptions[$option] !== $value
@@ -455,30 +493,17 @@ class ExternalWikiPrimaryAuthenticationProvider	extends AbstractPasswordPrimaryA
 			}
 		}
 
-		if ( isset( $userInfo->query->userinfo->messages ) ) {
-			$this->talkPageNotificationManager->setUserHasNewMessages( $user );
-		}
-
-		// editcount and registrationdate cannot be set via methods on User
-		$dbw->update(
-			'user',
-			[
-				'user_editcount' => $userInfo->query->userinfo->editcount,
-				'user_registration' => $dbw->timestamp( $userInfo->query->userinfo->registrationdate )
-			],
-			[ 'user_id' => $user->getId() ],
-			__METHOD__
-		);
+		return $userInfo;
 	}
 
 	/**
 	 * @param Title $title
 	 * @param User $user
-	 * @param array &$jobs
 	 */
-	private function addReattributeEditsJobs( Title $title, User $user, array &$jobs ) {
+	private function addReattributeEditsJobs( Title $title, User $user ) {
 		$dbr = $this->loadBalancer->getConnection( DB_REPLICA );
 		$pagesPerJob = (int)$this->config->get( 'UpdateRowsPerJob' );
+		$jobs = [];
 
 		foreach ( ReattributeEdits::getTableMetadata() as $table => $metadata ) {
 			[ $tableKey, $actorKey, $userText, $userKey ] = $metadata;
@@ -557,6 +582,10 @@ class ExternalWikiPrimaryAuthenticationProvider	extends AbstractPasswordPrimaryA
 				'table' => 'log_search',
 				'ids' => $ids
 			] );
+		}
+
+		if ( $jobs !== [] ) {
+			JobQueueGroup::singleton()->push( $jobs );
 		}
 	}
 

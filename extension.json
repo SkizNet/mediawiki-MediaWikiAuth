@@ -51,6 +51,20 @@
 			"description": "Reattribute existing edits by unknown actors via job queue",
 			"descriptionmsg": "mwa-config-reattributeedits",
 			"public": true
+		},
+		"MediaWikiAuthImportOptions": {
+			"value": ["*"],
+			"description": "User preferences to import from the remote wiki; use * for all",
+			"descriptionmsg": "mwa-config-importoptions",
+			"merge_strategy": "provide_default",
+			"public": true
+		},
+		"MediaWikiAuthSkipOptions": {
+			"value": [],
+			"description": "User preferences that should not be imported from the remote wiki",
+			"descriptionmsg": "mwa-config-skipoptions",
+			"merge_strategy": "provide_default",
+			"public": true
 		}
 	},
 	"MessagesDirs": {
