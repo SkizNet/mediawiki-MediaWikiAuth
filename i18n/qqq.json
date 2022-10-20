@@ -7,6 +7,8 @@
 	"mwa-config-allowpasswordchange": "Description of the configuration variable $wgMediaWikiAuthAllowPasswordChange for [[mw:Extension:MediaWikiAuth|Extension:MediaWikiAuth]].",
 	"mwa-config-apiurl": "Description of the configuration variable $wgMediaWikiAuthApiUrl for [[mw:Extension:MediaWikiAuth|Extension:MediaWikiAuth]].",
 	"mwa-config-importgroups": "Description of the configuration variable $wgMediaWikiAuthImportGroups for [[mw:Extension:MediaWikiAuth|Extension:MediaWikiAuth]].",
+	"mwa-config-importoptions": "Description of the configuration variable $wgMediaWikiAuthImportOptions for [[mw:Extension:MediaWikiAuth|Extension:MediaWikiAuth]].",
+	"mwa-config-skipoptions": "Description of the configuration variable $wgMediaWikiAuthSkipOptions for [[mw:Extension:MediaWikiAuth|Extension:MediaWikiAuth]].",
 	"mwa-config-disableaccountcreation": "Description of the configuration variable $wgMediaWikiAuthDisableAccountCreation for [[mw:Extension:MediaWikiAuth|Extension:MediaWikiAuth]].",
 	"mwa-config-importwatchlist": "Description of the configuration variable $wgMediaWikiAuthImportWatchlist for [[mw:Extension:MediaWikiAuth|Extension:MediaWikiAuth]].",
 	"mwa-config-reattributeedits": "Description of the configuration variable $wgMediaWikiAuthReattributeEdits for [[mw:Extension:MediaWikiAuth|Extension:MediaWikiAuth]].",

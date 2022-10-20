@@ -14,7 +14,7 @@ if ( getenv( 'MW_INSTALL_PATH' ) ) {
 require_once "$IP/maintenance/Maintenance.php";
 
 class ReattributeImportedEdits extends Maintenance {
-	const OPT_USER = 'user';
+	public const OPT_USER = 'user';
 
 	public function __construct() {
 		parent::__construct();
@@ -22,14 +22,14 @@ class ReattributeImportedEdits extends Maintenance {
 		$this->addOption(
 			self::OPT_USER,
 			'Username to update. If not specified, all users will be updated.',
-			false, // not required
-			true // requires argument
+			false,
+			true
 		);
 		$this->requireExtension( 'MediaWikiAuth' );
 	}
 
 	public function execute() {
-		$dbw = wfGetDB( DB_MASTER );
+		$dbw = wfGetDB( DB_PRIMARY );
 		$singleUser = false;
 
 		if ( $this->hasOption( self::OPT_USER ) ) {
@@ -37,7 +37,6 @@ class ReattributeImportedEdits extends Maintenance {
 
 			if ( $user === null || $user->getId() === 0 ) {
 				$this->fatalError( "User {$user} does not exist.\n", 1 );
-				return; // never actually get here; error() calls die()
 			}
 
 			$singleUser = $user->getName();
@@ -51,44 +50,25 @@ class ReattributeImportedEdits extends Maintenance {
 			$conds = [];
 			$setList = [];
 
-			if ( ReattributeEdits::useActorSchema( $this->getConfig() ) ) {
-				if ( $actorKey === null ) {
-					// table doesn't support actors, skip it
-					continue;
-				}
-
-				$actorData = ReattributeEdits::getActorMigrationData( $dbw, $singleUser );
-				if ( $actorData === [] ) {
-					$this->output( "Nothing needs to be done.\n" );
-					return;
-				}
-
-				$case = "CASE {$actorKey}";
-				foreach ( $actorData as $old => $new ) {
-					$case .= " WHEN {$old} THEN {$new}";
-				}
-				$case .= " ELSE {$actorKey} END";
-
-				$setList[] = "{$actorKey} = {$case}";
-				$conds[$actorKey] = array_keys( $actorData );
-			} else {
-				if ( $userKey === null ) {
-					// table doesn't support pre-actor, skip it
-					continue;
-				}
-
-				$conds[$userKey] = 0;
-				$subquery = $dbw->selectSQLText('user', 'user_id', "user_name = $userText", __METHOD__ . ':subquery');
-
-				if ($singleUser !== false) {
-					$conds[$userText] = $singleUser;
-				}
-				else {
-					$conds[] = "EXISTS({$subquery})";
-				}
-
-				$setList[] = "{$userKey} = ({$subquery})";
+			if ( $actorKey === null ) {
+				// table doesn't support actors, skip it
+				continue;
 			}
+
+			$actorData = ReattributeEdits::getActorMigrationData( $dbw, $singleUser );
+			if ( $actorData === [] ) {
+				$this->output( "Nothing needs to be done.\n" );
+				return;
+			}
+
+			$case = "CASE {$actorKey}";
+			foreach ( $actorData as $old => $new ) {
+				$case .= " WHEN {$old} THEN {$new}";
+			}
+			$case .= " ELSE {$actorKey} END";
+
+			$setList[] = "{$actorKey} = {$case}";
+			$conds[$actorKey] = array_keys( $actorData );
 
 			$this->output( "Updating {$table} (this may take a few minutes)...\n" );
 			$success = $dbw->update( $table, $setList, $conds, __METHOD__ . ':update' );
@@ -107,29 +87,8 @@ class ReattributeImportedEdits extends Maintenance {
 		$this->output( "Updating log_search (this may take a few minutes)...\n" );
 		$conds = [];
 		$setList = [];
-		if ( ReattributeEdits::useActorSchema( $this->getConfig() ) ) {
-			$migrateData = ReattributeEdits::getActorMigrationData( $dbw, $singleUser );
-			$conds['ls_type'] = 'target_author_actor';
-		} else {
-			$migrateData = [];
-			$res = $dbw->select(
-				[ 'log_search', 'user' ],
-				[ 'user_id', 'user_name' ],
-				[ 'ls_value = user_name', 'ls_type' => 'target_author_ip' ]
-			);
-
-			foreach ( $res as $row ) {
-				$migrateData[$row['user_name']] = $row['user_id'];
-			}
-
-			if ( $migrateData === [] ) {
-				$this->output( "Updated 0 records on log_search.\n" );
-				return;
-			}
-
-			$setList['ls_type'] = 'target_author_id';
-			$conds['ls_type'] = 'target_author_ip';
-		}
+		$migrateData = ReattributeEdits::getActorMigrationData( $dbw, $singleUser );
+		$conds['ls_type'] = 'target_author_actor';
 
 		$case = "CASE ls_value";
 		foreach ( $migrateData as $old => $new ) {

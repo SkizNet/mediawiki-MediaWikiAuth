@@ -1,11 +1,16 @@
 <?php
 
-
 namespace MediaWikiAuth;
 
 use Wikimedia\Rdbms\IDatabase;
 
 class ReattributeEdits {
+	/**
+	 * Get old,new actor pairs
+	 * @param IDatabase $db
+	 * @param string $username
+	 * @return array|mixed
+	 */
 	public static function getActorMigrationData( IDatabase $db, $username ) {
 		static $cached = [];
 		if ( array_key_exists( $username, $cached ) ) {
@@ -31,6 +36,11 @@ class ReattributeEdits {
 		return $cached[$username];
 	}
 
+	/**
+	 * Fetch table metadata for edit reattribution
+	 * @param string|null $table
+	 * @return array
+	 */
 	public static function getTableMetadata( $table = null ) {
 		// Note that only tables which are used in the XML dump import process (plus recentchanges) are updated.
 		$metadata = [

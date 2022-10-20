@@ -32,9 +32,6 @@ use Wikimedia\Rdbms\ILoadBalancer;
  * @stable to extend (public/protected API versioned with semver)
  */
 class ExternalWikiPrimaryAuthenticationProvider	extends AbstractPasswordPrimaryAuthenticationProvider {
-	/** @var CookieJar */
-	protected $cookieJar;
-
 	/** @var array Cache of users we've already looked up in the API */
 	private $userCache = [];
 
@@ -59,6 +56,12 @@ class ExternalWikiPrimaryAuthenticationProvider	extends AbstractPasswordPrimaryA
 	/** @var ILoadBalancer */
 	protected $loadBalancer;
 
+	/** @var ?\MediaWiki\JobQueue\JobQueueGroupFactory */
+	private $jobQueueGroupFactory;
+
+	/** @var CookieJar */
+	private $cookieJar;
+
 	/**
 	 * Constructor.
 	 *
@@ -68,6 +71,7 @@ class ExternalWikiPrimaryAuthenticationProvider	extends AbstractPasswordPrimaryA
 	 * @param TalkPageNotificationManager $talkPageNotificationManager
 	 * @param UserGroupManager $userGroupManager
 	 * @param UserOptionsManager $userOptionsManager
+	 * @param ?\MediaWiki\JobQueue\JobQueueGroupFactory $jobQueueGroupFactory
 	 * @param array $params
 	 */
 	public function __construct(
@@ -77,17 +81,19 @@ class ExternalWikiPrimaryAuthenticationProvider	extends AbstractPasswordPrimaryA
 		TalkPageNotificationManager $talkPageNotificationManager,
 		UserGroupManager $userGroupManager,
 		UserOptionsManager $userOptionsManager,
+		$jobQueueGroupFactory,
 		array $params = []
 	) {
 		parent::__construct( $params );
 
-		$this->cookieJar = new CookieJar();
 		$this->userGroupManager = $userGroupManager;
 		$this->userOptionsManager = $userOptionsManager;
 		$this->talkPageNotificationManager = $talkPageNotificationManager;
 		$this->skinFactory = $skinFactory;
 		$this->httpRequestFactory = $httpRequestFactory;
 		$this->loadBalancer = $loadBalancer;
+		$this->jobQueueGroupFactory = $jobQueueGroupFactory;
+		$this->cookieJar = new CookieJar();
 	}
 
 	/**
@@ -106,6 +112,11 @@ class ExternalWikiPrimaryAuthenticationProvider	extends AbstractPasswordPrimaryA
 	 * @throws ErrorPageError|MWException
 	 */
 	public function beginPrimaryAuthentication( array $reqs ) {
+		// Enforce a password reset if accounts already exist locally with invalid hashes
+		// Logging in with a Bot Password will also force a reset (handled later on in the function)
+		$passwordResetData = new stdClass();
+		$passwordResetData->hard = $this->config->get( 'MediaWikiAuthDisableAccountCreation' );
+
 		/** @var PasswordAuthenticationRequest $req */
 		$req = AuthenticationRequest::getRequestByClass( $reqs, PasswordAuthenticationRequest::class );
 		if ( !$req ) {
@@ -116,16 +127,25 @@ class ExternalWikiPrimaryAuthenticationProvider	extends AbstractPasswordPrimaryA
 			return AuthenticationResponse::newAbstain();
 		}
 
+		// Test if we were given a bot name and password (aka if the username contains @)
+		$botName = null;
+		if ( strpos( $req->username, '@' ) !== false ) {
+			[ $username, $botName ] = explode( '@', $req->username, 2 );
+			$req->username = $username;
+		}
+
 		// Get an existing local user for this username. Depending on config,
 		// we either block auth if a local user exists, or only allow auth against
 		// local users (with currently-invalid passwords)
 		$existingUser = User::newFromName( $req->username, 'usable' );
-		$username = $existingUser->getName();
 
 		// if $existingUser is false, the username is invalid
 		if ( $existingUser === false ) {
 			return AuthenticationResponse::newAbstain();
 		}
+
+		// Get canonical form of username
+		$username = $existingUser->getName();
 
 		if ( $this->config->get( 'MediaWikiAuthDisableAccountCreation' ) ) {
 			// Only perform account import on already-existing local accounts,
@@ -136,6 +156,7 @@ class ExternalWikiPrimaryAuthenticationProvider	extends AbstractPasswordPrimaryA
 			// call for system users, so that acts as a good proxy for an invalid token test.
 			if ( $existingUser->getId() === 0
 				|| $this->manager->userCanAuthenticate( $username )
+				// @phan-suppress-next-line PhanPluginDuplicateExpressionBinaryOp
 				|| ( !$existingUser->getEmail() && $existingUser->getToken() !== $existingUser->getToken() )
 			) {
 				return AuthenticationResponse::newAbstain();
@@ -191,6 +212,36 @@ class ExternalWikiPrimaryAuthenticationProvider	extends AbstractPasswordPrimaryA
 				$this->manager->removeAuthenticationSessionData( self::PWKEY );
 				return AuthenticationResponse::newFail( wfMessage( 'mwa-authfail' ) );
 			}
+		} elseif ( $botName !== null ) {
+			// use login API with a BotPassword
+
+			// Step 1. Grab a login token
+			$resp = $this->apiRequest( 'GET', [
+				'action' => 'query',
+				'meta' => 'tokens',
+				'type' => 'login'
+			], [], __METHOD__ );
+			$loginToken = $resp->query->tokens->logintoken;
+
+			// Step 2. use action=login with the bot name and password
+			$resp = $this->apiRequest( 'POST', [
+				'action' => 'login'
+			], [
+				'lgname' => $username . '@' . $botName,
+				'lgpassword' => $req->password,
+				'lgtoken' => $loginToken
+			], __METHOD__ );
+
+			// require a password reset if logging in with a bot password
+			$passwordResetData->hard = true;
+
+			if ( $resp->login->result !== 'Success' ) {
+				$this->logger->info(
+					'Authentication against BotPassword remote API failed for reason ' . $resp->login->result,
+					[ 'remoteVersion' => $remoteVersion, 'caller' => __METHOD__, 'username' => $username ] );
+				$this->manager->removeAuthenticationSessionData( self::PWKEY );
+				return AuthenticationResponse::newFail( wfMessage( 'mwa-authfail' ) );
+			}
 		} else {
 			// use new clientlogin API.
 			// TODO: We do not currently support things that inject into the auth flow,
@@ -234,8 +285,16 @@ class ExternalWikiPrimaryAuthenticationProvider	extends AbstractPasswordPrimaryA
 
 		// Remote login was successful, an account will be automatically created for the user by the system
 		// Mark them as (maybe) needing to reset their password as a secondary auth step.
-		if ( $this->config->get( 'MediaWikiAuthAllowPasswordChange' ) ) {
-			$this->setPasswordResetFlag( $username, Status::newGood() );
+		if ( $this->config->get( 'MediaWikiAuthAllowPasswordChange' ) || $passwordResetData->hard ) {
+			$this->setPasswordResetFlag( $username, Status::newGood(), $passwordResetData );
+		}
+
+		// If this was a stub user, import their data now
+		if ( $existingUser->getId() !== 0 ) {
+			if ( $this->importData( $existingUser ) !== null ) {
+				// import successful, save updated options
+				$existingUser->saveSettings();
+			}
 		}
 
 		return AuthenticationResponse::newPass( $username );
@@ -247,7 +306,6 @@ class ExternalWikiPrimaryAuthenticationProvider	extends AbstractPasswordPrimaryA
 	 * @param User $user
 	 * @param string $source
 	 * @return void
-	 * @throws ErrorPageError|MWException
 	 */
 	public function autoCreatedAccount( $user, $source ) {
 		if ( $source !== __CLASS__ ) {
@@ -266,7 +324,37 @@ class ExternalWikiPrimaryAuthenticationProvider	extends AbstractPasswordPrimaryA
 
 		// $user->saveChanges() is called automatically after this runs,
 		// so calling it ourselves is not necessary.
-		// This is where we fetch user preferences and watchlist to save locally.
+		$userInfo = $this->importData( $user );
+
+		if ( $this->config->get( 'MediaWikiAuthReattributeEdits' ) ) {
+			$this->addReattributeEditsJobs( $user->getUserPage(), $user );
+		}
+
+		// editcount and registrationdate cannot be set via methods on User
+		if ( $userInfo !== null ) {
+			$dbw = $this->loadBalancer->getConnection( DB_PRIMARY );
+			$dbw->update(
+				'user',
+				[
+					'user_editcount' => $userInfo->query->userinfo->editcount,
+					'user_registration' => $dbw->timestamp( $userInfo->query->userinfo->registrationdate )
+				],
+				[ 'user_id' => $user->getId() ],
+				__METHOD__
+			);
+		}
+	}
+
+	/**
+	 * Import data from the remote wiki for the given user, based on configuration:
+	 * - watchlist
+	 * - preferences
+	 * - groups
+	 *
+	 * @param User $user
+	 * @return ?stdClass API response, or null on error
+	 */
+	private function importData( User $user ) {
 		$userInfo = $this->apiRequest( 'GET', [
 			'action' => 'query',
 			'meta' => 'userinfo',
@@ -285,13 +373,10 @@ class ExternalWikiPrimaryAuthenticationProvider	extends AbstractPasswordPrimaryA
 		$watchlist = [];
 		$pagesPerJob = (int)$this->config->get( 'UpdateRowsPerJob' );
 
-		$dbw = $this->loadBalancer->getConnection( DB_PRIMARY );
-		$jobs = [];
-		// not used by us, but Job constructor needs a valid Title
-		$title = $user->getUserPage();
-
 		// enqueue jobs to actually add watchlist items and to reattribute already-existing edits (if enabled)
 		if ( $this->config->get( 'MediaWikiAuthImportWatchlist' ) ) {
+			$jobs = [];
+
 			while ( true ) {
 				$resp = $this->apiRequest( 'GET', $wrquery, [], __METHOD__ );
 				if ( isset( $resp->error ) ) {
@@ -316,19 +401,15 @@ class ExternalWikiPrimaryAuthenticationProvider	extends AbstractPasswordPrimaryA
 				// array_splice reduces the size of $watchlist and returns the removed elements.
 				// This avoids memory bloat so that we only keep the watchlist resident in memory one time.
 				$slice = array_splice( $watchlist, 0, $pagesPerJob );
-				$jobs[] = new PopulateImportedWatchlistJob( $title, [
+				$jobs[] = new PopulateImportedWatchlistJob( $user->getUserPage(), [
 					'username' => $user->getName(),
 					'pages' => $slice
 				] );
 			}
-		}
 
-		if ( $this->config->get( 'MediaWikiAuthReattributeEdits' ) ) {
-			$this->addReattributeEditsJobs( $title, $user, $jobs );
-		}
-
-		if ( $jobs !== [] ) {
-			JobQueueGroup::singleton()->push( $jobs );
+			if ( $jobs !== [] ) {
+				$this->pushJobs( $jobs );
+			}
 		}
 
 		if ( isset( $userInfo->error ) ) {
@@ -337,7 +418,7 @@ class ExternalWikiPrimaryAuthenticationProvider	extends AbstractPasswordPrimaryA
 				$userInfo->error
 			);
 
-			return;
+			return null;
 		}
 
 		// groupmemberships contains groups and expiries, but is only present in recent versions of MW.
@@ -363,8 +444,8 @@ class ExternalWikiPrimaryAuthenticationProvider	extends AbstractPasswordPrimaryA
 				if ( !in_array( $group->group, $validGroups ) ) {
 					continue;
 				}
-				
-				if ( in_array( $group->expiry, ['infinite', 'indefinite', 'infinity', 'never'] ) ) {
+
+				if ( in_array( $group->expiry, [ 'infinite', 'indefinite', 'infinity', 'never' ] ) ) {
 					$group->expiry = null;
 				}
 
@@ -391,15 +472,25 @@ class ExternalWikiPrimaryAuthenticationProvider	extends AbstractPasswordPrimaryA
 
 		$validOptions = $this->userOptionsManager->getOptions( $user );
 		if ( method_exists( $this->skinFactory, 'getAllowedSkins' ) ) {
-			// MW 1.36
+			// 1.36+
+			// @phan-suppress-next-line PhanUndeclaredMethod
 			$validSkins = array_keys( $this->skinFactory->getAllowedSkins() );
 		} else {
+			// @phan-suppress-next-line PhanUndeclaredStaticMethod
 			$validSkins = array_keys( Skin::getAllowedSkins() );
 		}
-		$optionBlacklist = [ 'watchlisttoken' ];
+
+		$optionImportList = $this->config->get( 'MediaWikiAuthImportOptions' );
+		$optionSkipList = $this->config->get( 'MediaWikiAuthSkipOptions' );
+		if ( in_array( '*', $optionImportList ) ) {
+			$optionImportList = array_merge( $optionImportList, $validOptions );
+		}
+
+		$optionSkipList[] = 'watchlisttoken';
+		$optionList = array_diff( $optionImportList, $optionSkipList );
 
 		foreach ( $userInfo->query->userinfo->options as $option => $value ) {
-			if ( !in_array( $option, $optionBlacklist )
+			if ( in_array( $option, $optionList )
 				&& ( $option !== 'skin' || in_array( $value, $validSkins ) )
 				&& array_key_exists( $option, $validOptions )
 				&& $validOptions[$option] !== $value
@@ -408,57 +499,34 @@ class ExternalWikiPrimaryAuthenticationProvider	extends AbstractPasswordPrimaryA
 			}
 		}
 
-		if ( isset( $userInfo->query->userinfo->messages ) ) {
-			$this->talkPageNotificationManager->setUserHasNewMessages( $user );
-		}
-
-		// editcount and registrationdate cannot be set via methods on User
-		$dbw->update(
-			'user',
-			[
-				'user_editcount' => $userInfo->query->userinfo->editcount,
-				'user_registration' => $dbw->timestamp( $userInfo->query->userinfo->registrationdate )
-			],
-			[ 'user_id' => $user->getId() ],
-			__METHOD__
-		);
+		return $userInfo;
 	}
 
 	/**
 	 * @param Title $title
 	 * @param User $user
-	 * @param array &$jobs
 	 */
-	private function addReattributeEditsJobs( Title $title, User $user, array &$jobs ) {
-		$actor = ReattributeEdits::useActorSchema( $this->config );
+	private function addReattributeEditsJobs( Title $title, User $user ) {
 		$dbr = $this->loadBalancer->getConnection( DB_REPLICA );
 		$pagesPerJob = (int)$this->config->get( 'UpdateRowsPerJob' );
+		$jobs = [];
 
 		foreach ( ReattributeEdits::getTableMetadata() as $table => $metadata ) {
 			[ $tableKey, $actorKey, $userText, $userKey ] = $metadata;
 
 			// determine which records need to be updated
-			if ( $actor ) {
-				$data = ReattributeEdits::getActorMigrationData( $dbr, $user->getName() );
-				if ( $data === [] ) {
-					// nothing to reattribute
-					return;
-				}
-
-				$res = $dbr->select(
-					$table,
-					$tableKey,
-					[ $actorKey => array_keys( $data ) ],
-					__METHOD__ . ':populateJobs'
-				);
-			} else {
-				$res = $dbr->select(
-					$table,
-					$tableKey,
-					[ $userText => $user->getName(), $userKey => 0 ],
-					__METHOD__ . ':populateJobs'
-				);
+			$data = ReattributeEdits::getActorMigrationData( $dbr, $user->getName() );
+			if ( $data === [] ) {
+				// nothing to reattribute
+				return;
 			}
+
+			$res = $dbr->select(
+				$table,
+				$tableKey,
+				[ $actorKey => array_keys( $data ) ],
+				__METHOD__ . ':populateJobs'
+			);
 
 			// generate our jobs, in appropriate batch sizes
 			$counter = 0;
@@ -471,7 +539,6 @@ class ExternalWikiPrimaryAuthenticationProvider	extends AbstractPasswordPrimaryA
 					$jobs[] = new ReattributeImportedEditsJob( $title, [
 						'username' => $user->getName(),
 						'table' => $table,
-						'actor' => $actor,
 						'ids' => $ids
 					] );
 					$counter = 0;
@@ -483,31 +550,20 @@ class ExternalWikiPrimaryAuthenticationProvider	extends AbstractPasswordPrimaryA
 				$jobs[] = new ReattributeImportedEditsJob( $title, [
 					'username' => $user->getName(),
 					'table' => $table,
-					'actor' => $actor,
 					'ids' => $ids
 				] );
 			}
 		}
 
 		// handle log_search table specially since it doesn't conform to the other tables we update
-		if ( $actor ) {
-			$data = ReattributeEdits::getActorMigrationData( $dbr, $user->getName() );
-			$res = $dbr->select(
-				'log_search',
-				'ls_log_id',
-				[ 'ls_field' => 'target_author_actor', 'ls_value' => array_keys( $data ) ],
-				__METHOD__ . ':populateJobs',
-				[ 'DISTINCT' ]
-			);
-		} else {
-			$res = $dbr->select(
-				'log_search',
-				'ls_log_id',
-				[ 'ls_field' => 'target_author_ip', 'ls_value' => $user->getName() ],
-				__METHOD__ . ':populateJobs',
-				[ 'DISTINCT' ]
-			);
-		}
+		$data = ReattributeEdits::getActorMigrationData( $dbr, $user->getName() );
+		$res = $dbr->select(
+			'log_search',
+			'ls_log_id',
+			[ 'ls_field' => 'target_author_actor', 'ls_value' => array_keys( $data ) ],
+			__METHOD__ . ':populateJobs',
+			[ 'DISTINCT' ]
+		);
 
 		$counter = 0;
 		$ids = [];
@@ -519,7 +575,6 @@ class ExternalWikiPrimaryAuthenticationProvider	extends AbstractPasswordPrimaryA
 				$jobs[] = new ReattributeImportedEditsJob( $title, [
 					'username' => $user->getName(),
 					'table' => 'log_search',
-					'actor' => $actor,
 					'ids' => $ids
 				] );
 				$counter = 0;
@@ -531,9 +586,29 @@ class ExternalWikiPrimaryAuthenticationProvider	extends AbstractPasswordPrimaryA
 			$jobs[] = new ReattributeImportedEditsJob( $title, [
 				'username' => $user->getName(),
 				'table' => 'log_search',
-				'actor' => $actor,
 				'ids' => $ids
 			] );
+		}
+
+		if ( $jobs !== [] ) {
+			$this->pushJobs( $jobs );
+		}
+	}
+
+	/**
+	 * Back-compat wrapper to add jobs to the job queue
+	 *
+	 * @param array $jobs
+	 * @return void
+	 */
+	protected function pushJobs( array $jobs ) {
+		if ( $this->jobQueueGroupFactory !== null ) {
+			// 1.37+
+			// @phan-suppress-next-line PhanUndeclaredClassMethod
+			$this->jobQueueGroupFactory->makeJobQueueGroup()->push( $jobs );
+		} else {
+			// @phan-suppress-next-line PhanUndeclaredStaticMethod
+			JobQueueGroup::singleton()->push( $jobs );
 		}
 	}
 
@@ -625,23 +700,9 @@ class ExternalWikiPrimaryAuthenticationProvider	extends AbstractPasswordPrimaryA
 			MWDebug::log( 'POST data: ' . json_encode( $postData ) );
 		}
 
-		// Handle cookies manually. Guzzle's cookie handling is broken in 1.34.
-		$baseUrlDetails = wfParseUrl( $baseUrl );
-		$host = $baseUrlDetails['host'];
-		$path = isset( $baseUrlDetails['path'] ) ? $baseUrlDetails['path'] : '/';
-
 		$req = $this->httpRequestFactory->create( $apiUrl, $options, $caller );
-		$cookieHeader = $this->cookieJar->serializeToHttpRequest( $path, $host );
-		if ( $cookieHeader !== '' ) {
-			MWDebug::log( 'Cookies: ' . $cookieHeader );
-			$req->setHeader( 'Cookie', $cookieHeader );
-		}
-
+		$req->setCookieJar( $this->cookieJar );
 		$status = $req->execute();
-		$setCookieHeader = $req->getResponseHeader( 'Set-Cookie' );
-		if ( $setCookieHeader !== null ) {
-			$this->cookieJar->parseCookieResponseHeader( $setCookieHeader, $host );
-		}
 
 		if ( $status->isOK() ) {
 			$content = json_decode( $req->getContent() );
@@ -655,9 +716,6 @@ class ExternalWikiPrimaryAuthenticationProvider	extends AbstractPasswordPrimaryA
 			}
 
 			MWDebug::log( 'API Response: ' . $req->getContent() );
-			if ( $setCookieHeader !== null ) {
-				MWDebug::log( 'Response Cookies: ' . $setCookieHeader );
-			}
 
 			return $content;
 		} else {
@@ -712,7 +770,7 @@ class ExternalWikiPrimaryAuthenticationProvider	extends AbstractPasswordPrimaryA
 	 * @inheritDoc
 	 */
 	protected function getPasswordResetData( $username, $data ) {
-		if ( $this->config->get( 'MediaWikiAuthDisableAccountCreation' ) ) {
+		if ( isset( $data->hard ) && $data->hard ) {
 			// In this case, an account exists locally with an invalid password.
 			// The user must reset their password to something valid or
 			// they will be unable to log in, and it'll try to fire off another import.
