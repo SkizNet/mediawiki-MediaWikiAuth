@@ -1,11 +1,12 @@
 {
 	"@metadata": {
 		"authors": [
-			"Kly"
+			"Kly",
+			"捍粵者"
 		]
 	},
 	"mwa-extensionname": "MediaWikiAuth",
-	"mwa-desc": "從外部 MediaWiki 實體來進行驗證並匯入登入",
+	"mwa-desc": "由外部MediaWiki實體驗證並匯入登入",
 	"mwa-config-allowpasswordchange": "若為 <code>true</code>，在匯入他們的帳號之後，會提示使用者來選擇更改他們的密碼（或是選擇忽略按鈕來維持相同密碼）。",
 	"mwa-config-apiurl": "針對驗證的遠端 wiki 的 api.php 網址。",
 	"mwa-config-importgroups": "此設置控制哪些本地使用者群組會分配給使用者。若為 <code>true</code>（預設值），提供的群組名稱存在於本地端，則使用者在遠端 wiki 上所擁有的全部群組成員會匯入到本地端 wiki。若為 <code>false</code>，不會有任何群組成員被匯入。若為陣列，僅有匯入設置所列出要複製的群組。在任一情況下都不會匯入隱式群組，且任何群組到期資料皆維持不變。",
