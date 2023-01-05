@@ -4,7 +4,6 @@
 			"Hamilton Abreu"
 		]
 	},
-	"mwa-extensionname": "MediaWikiAuth",
 	"mwa-desc": "Autentica contra, e importa as contas de, uma instância do MediaWiki externa",
 	"mwa-config-allowpasswordchange": "Se <code>true</code>, depois de o utilizador importar a sua conta será proposto alterar opcionalmente a palavra-passe (ou escolher um botão Ignorar para manter a mesma palavra-passe).",
 	"mwa-config-apiurl": "URL do api.php da wiki remota onde realizar a autenticação.",

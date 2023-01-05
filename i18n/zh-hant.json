@@ -5,7 +5,6 @@
 			"捍粵者"
 		]
 	},
-	"mwa-extensionname": "MediaWikiAuth",
 	"mwa-desc": "由外部MediaWiki實體驗證並匯入登入",
 	"mwa-config-allowpasswordchange": "若為 <code>true</code>，在匯入他們的帳號之後，會提示使用者來選擇更改他們的密碼（或是選擇忽略按鈕來維持相同密碼）。",
 	"mwa-config-apiurl": "針對驗證的遠端 wiki 的 api.php 網址。",
