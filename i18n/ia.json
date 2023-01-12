@@ -1,0 +1,25 @@
+{
+	"@metadata": {
+		"authors": [
+			"McDutchie"
+		]
+	},
+	"mwa-desc": "Authentica contra e importa contos de un instantia externe de MediaWiki",
+	"mwa-config-allowpasswordchange": "Si <code>true</code>, post le importation de su conto, le usator essera demandate a optionalmente cambiar su contrasigno (o eliger un button Saltar pro mantener le mesme contrasigno).",
+	"mwa-config-apiurl": "URL del api.php del wiki remote contra le qual authenticar.",
+	"mwa-config-importgroups": "Iste configuration controla qual gruppos local de usator es assignate al usator. Si <code>true</code> (le predefinition), tote membratos de gruppos que le usator habeva sur le wiki remote es importate al wiki local, si gruppos del mesme nomine existe localmente. Si <code>false</code>, nulle membratos de gruppos es importate. Si es un array/matrice, le configuration enumera qual gruppos copiar; solmente illos listate es importate. In le duo casos, gruppos implicite non pote esser importate, e omne datos de expiration de gruppos es mantenite intacte.",
+	"mwa-config-importoptions": "Iste configuration controla qual preferentia de usator es importate del wiki remote. Illo es un array de nomines de option de preferentia de usator interne. Un valor optional de metacharacter (<code>'*'</code>) presente in le array importara toto. Si le array es vacue, nulle optiones essera importate. Si le array non contine un metacharacter, solmente le optiones specificate essera importate.",
+	"mwa-config-skipoptions": "Iste configuration controla qual preferentia de usator non es importate del wiki remote. Illo es un array de nomines de option de preferentia de usator interne. Le preferentias listate hic non essera importate, mesmo si illos es listate in <code>$wgMediaWikiAuthImportOptions</code>. Isto es principalmente usate quando tu vole importar toto ''excepte'' un certe lista de optiones.",
+	"mwa-config-disableaccountcreation": "Si <code>true</code>, MediaWikiAuth assume que tote le usatores relevante ha ja essite create localmente, ma con hash de contrasigno invalide. Isto es utile si tu solmente vole importar un subinsimul de tote le usatores del wiki remote, como tote le personas que ha modificate remotemente. Si <code>true</code>, MediaWikiAuth detegera le contrasigno invalide e tentara authenticar se contra le wiki remote con le contrasigno date del usator. Si succede, le usator debera cambiar su contrasigno local pro poter aperir session normalmente in le futuro.\n\nQuando functiona in iste modo, le observatorio, le importation de gruppos, e le reattribution de modificationes non eveni. Ille configurationes es ignorate.",
+	"mwa-config-importwatchlist": "Si <code>true</code>, le observatorios essera importate via le cauda de actiones. Si <code>false</code>, le observatorios non essera importate. Activar iste option facera requestas additional al API remote. Si le servitor remote es particularmente lente, iste requestas additional pote causar que le processo de importation de usatores excede le tempore limite. In tal caso, tu debe disactivar iste parametro.",
+	"mwa-config-reattributeedits": "Si <code>true</code>, le modificationes existente importate que corresponde al nomine de usator del conto novemente create essera reattribuite via le cauda de actiones, de modo que illos appare correctemente in le pagina de Contributiones del usator. Si <code>false</code>, nulle reattribution occurre.",
+	"mwa-error-unknown": "Error incognite durante le apertura de session in le wiki remote.",
+	"mwa-authfail": "Impossibile aperir session in le wiki remote pro importar tu conto. Assecura te de usar le contrasigno correcte.",
+	"mwa-authfail2": "Non es possibile aperir session in le wiki remote pro importar tu conto. Le wiki remote habeva le error sequente: $1",
+	"mwa-finishcreate": "Tu conto ha essite importate con successo. Tu pote definir un nove contrasigno ora o seliger '$1' pro retener tu contrasigno actual.",
+	"mwa-finishimport-nocreate": "Tu conto ha essite importate con successo. Per favor configura un nove contrasigno pro un melior securitate.",
+	"mwa-unconfiguredtitle": "Extension non configurate.",
+	"mwa-unconfiguredtext": "Le extension MediaWikiAuth non es configurate correctemente. Assecura te que $wgMediaWikiAuthApiUrl es configurate in tu LocalSettings.php al URL del API del wiki remote.",
+	"action-mwa-createlocalaccount": "crear contos local con le mesme nomine de usator que un conto externe non importate",
+	"right-mwa-createlocalaccount": "Crear contos local con le mesme nomine de usator que un conto externe non importate"
+}
