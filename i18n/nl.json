@@ -2,10 +2,11 @@
 	"@metadata": {
 		"authors": [
 			"Jedimca0",
-			"Mainframe98"
+			"Mainframe98",
+			"McDutchie"
 		]
 	},
-	"mwa-error-unknown": "Er heeft zich een onbekende fout voorgedaan tijdens het inloggen.",
+	"mwa-error-unknown": "Onbekende fout tijdens het aanmelden bij de externe wiki.",
 	"mwa-finishcreate": "Het importeren van uw account is geslaagd. U kunt nu een nieuw wachtwoord instellen of \"$1\" kiezen om uw huidige wachtwoord te behouden.",
 	"mwa-unconfiguredtitle": "Uitbreiding is niet geconfigureerd."
 }
