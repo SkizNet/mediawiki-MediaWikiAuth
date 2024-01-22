@@ -1,0 +1,21 @@
+{
+	"@metadata": {
+		"authors": [
+			"Accuratecy051"
+		]
+	},
+	"mwa-config-importoptions": "Nhazi a na-achịkwa nke mmasị onye ọrụ si na wiki dịpụrụ adịpụ ebubata. Ọ bụ ọtụtụ aha nhọrọ nhọrọ onye ọrụ dị n'ime. Uru akara ngosi nhọrọ ( <code>'*'</code> ) dị n'usoro ga-ebubata ihe niile. Ọ bụrụ n'usoro ihe efu, ọ nweghị nhọrọ agaghị ebubata. Ọ bụrụ na n'usoro enweghị kaadị ọhịa, naanị nhọrọ akọwapụtara ka a ga-ebubata.",
+	"mwa-config-skipoptions": "Nhazi a na-achịkwa nke mmasị onye ọrụ anaghị ebubata na wiki dịpụrụ adịpụ. Ọ bụ ọtụtụ aha nhọrọ nhọrọ onye ọrụ dị n'ime. Agaghị ebubata mmasị ndị edepụtara ebe a, ọbụlagodi na edepụtara ya na <code>$wgMediaWikiAuthImportOptions</code> . A na-eji nke a nke ọma mgbe ịchọrọ ibubata ihe niile ''belụsọ'' maka ndepụta nhọrọ ụfọdụ.",
+	"mwa-config-disableaccountcreation": "Ọ bụrụ <code>true</code> , MediaWikiAuth na-eche na emebelarị ndị ọrụ niile dị mkpa na mpaghara, mana jiri hashes paswọọdụ na-ezighi ezi. Nke a bara uru ma ọ bụrụ naanị na ịchọrọ ibubata ụfọdụ mpaghara nke ndị ọrụ niile na wiki dịpụrụ adịpụ, dị ka onye ọ bụla deziela n'ime oge. Ọ bụrụ na ọ <code>true</code> , MediaWikiAuth ga-achọpụta paswọọdụ na-ezighi ezi wee nwaa iji paswọọdụ nyere onye ọrụ nyochaa megide wiki dịpụrụ adịpụ. Ọ bụrụ na ịga nke ọma, a ga-achọrọ onye ọrụ ịgbanwe paswọọdụ obodo ha ka ha wee banye nke ọma n'ọdịnihu.\n\nMgbe ị na-arụ ọrụ na ọnọdụ a, listi nche, mbubata otu na ndezigharị anaghị eme. Agbagharala ntọala ndị ahụ.",
+	"mwa-config-importwatchlist": "Ọ bụrụ <code>true</code> , a ga-ebubata ndepụta nlele site n'ahịrị ọrụ. Ọ bụrụ <code>false</code> , agaghị ebubata ndepụta nlele. Ịkwanye nke a ga-ebute arịrịọ ndị ọzọ na API dịpụrụ adịpụ. Ọ bụrụ na ihe nkesa dịpụrụ adịpụ adịchaghị nwayọ, arịrịọ ndị ọzọ a nwere ike ịkwụsị usoro mbubata onye ọrụ. N'okwu a, ị ga-achọ gbanyụọ ntọala a.",
+	"mwa-config-reattributeedits": "Ọ bụrụ na ọ bụ <code>true</code> , ndezi mbubata nke dabara na aha njirimara akaụntụ emepụtara ọhụrụ ka a ga-atụgharịghachi site na kwụ n'ahịrị ọrụ ka ha gosi nke ọma na ibe onyinye onye ọrụ ahụ. Ọ bụrụ <code>false</code> , ọ nweghị nkwụghachi ga-apụta.",
+	"mwa-error-unknown": "Njehie amaghị mgbe ị na-abanye na wiki dịpụrụ adịpụ.",
+	"mwa-authfail": "Enweghị ike ịbanye na wiki dịpụrụ adịpụ iji bubata akaụntụ gị. Gbaa mbọ hụ na ị na-eji paswọọdụ ziri ezi.",
+	"mwa-authfail2": "Enweghị ike ịbanye na wiki dịpụrụ adịpụ iji bubata akaụntụ gị. Wiki dịpụrụ adịpụ nwere njehie a: $1",
+	"mwa-finishcreate": "Ebubatala akaụntụ gị nke ọma. Ị nwere ike ịtọ paswọọdụ ọhụrụ ugbu a ma ọ bụ họrọ \" $1 \" ka idowe paswọọdụ gị ugbu a.",
+	"mwa-finishimport-nocreate": "Akụkọ gị enweela ihe ịga nke ọma. Biko setịpụ paswọọdụ ọhụrụ maka nchebe ka mma.",
+	"mwa-unconfiguredtitle": "Mgbasawanye a na-ahazighị.",
+	"mwa-unconfiguredtext": "A naghị ahazi mgbatị MediaWikiAuth nke ọma. Gbaa mbọ hụ na $wgMediaWikiAuthApiUrl etinyere na LocalSettings.php gị na API URL nke wiki dịpụrụ adịpụ.",
+	"action-mwa-createlocalaccount": "mepụta akaụntụ mpaghara na otu aha njirimara dị ka akaụntụ mpụga a na-ebughị",
+	"right-mwa-createlocalaccount": "Mepụta akaụntụ mpaghara nwere otu aha njirimara dị ka akaụntụ mpụga a na-ebughị"
+}
