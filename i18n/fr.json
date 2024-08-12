@@ -2,6 +2,7 @@
 	"@metadata": {
 		"authors": [
 			"Gomoko",
+			"McDutchie",
 			"Pamputt",
 			"Thibaut120094",
 			"Verdy p",
@@ -11,7 +12,7 @@
 	"mwa-extensionname": "MediaWikiAuth",
 	"mwa-desc": "Authentifie avec et importe les comptes depuis une instance MediaWiki externe",
 	"mwa-config-allowpasswordchange": "Si <code>true</code>, après avoir importé son compte, l’utilisateur se verra proposer de changer son mot de passe de façon facultative (ou choisir un bouton Sauter pour conserver le même mot de passe).",
-	"mwa-config-apiurl": "URL vers « api.php » sur le wiki distant pour s’authentifier à nouveau.",
+	"mwa-config-apiurl": "URL vers « api.php » sur le wiki distant par rapport auquel s’authentifier.",
 	"mwa-config-importgroups": "Cette configuration contrôle les groupes d’utilisateurs locaux qui sont affectés à l'utilisateur. S’il vaut <code>true</code> (la valeur par défaut), tous les groupes d’appartenance que l’utilisateur avait sur le wiki distant sont importés dans le wiki local, à condition que des groupes du même nom existent localement. S’il vaut <code>false</code>, aucune appartenance à un groupe n’est importée. S’il s’agit d’un tableau, la configuration liste les groupes à copier ; seuls ceux qui sont listés sont importés. Dans les deux cas, les groupes implicites ne peuvent pas être importés et toute donnée d’expiration de groupe est laissée intacte.",
 	"mwa-config-importoptions": "Cette configuration contrôle quelles préférences utilisateur sont importées depuis le wiki distant. Il s’agit d’un tableau de noms d’options internes de préférences utilisateur. Une valeur générique facultative (<code>'*'</code> ) présente dans le tableau importera tout. Si le tableau est vide, aucune option ne sera importée. Si le tableau ne contient aucune valeur générique, seules les options spécifiées seront importées.",
 	"mwa-config-skipoptions": "Cette configuration contrôle quelles préférences utilisateur ne sont pas importées depuis le wiki distant. Il s’agit d’un tableau de noms internes d’options de préférences utilisateur. Les préférences listées ici ne seront pas importées, même si elles sont listées dans <code>$wgMediaWikiAuthImportOptions</code>. Ceci est principalement utilisé lorsque vous souhaitez tout importer ''sauf'' certaines options listées.",
