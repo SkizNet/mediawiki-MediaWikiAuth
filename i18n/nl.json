@@ -17,6 +17,11 @@
 	"mwa-config-reattributeedits": "Als dit op <code>true</code> (waar) is ingesteld, worden bestaande geïmporteerde bewerkingen die overeenkomen met de gebruikersnaam van het nieuw aangemaakte account opnieuw toegeschreven via de takenwachtrij, zodat ze correct worden weergegeven op de pagina Bijdragen van die gebruiker. Indien <code>false</code> vindt er geen hertoeschrijving plaats.",
 	"mwa-error-unknown": "Onbekende fout tijdens het aanmelden bij de externe wiki.",
 	"mwa-authfail": "Het is niet gelukt u aan te melden op de externe wiki om uw account te importeren. Zorg ervoor dat u het juiste wachtwoord gebruikt.",
+	"mwa-authfail2": "Het is niet gelukt u aan te melden op de externe wiki om uw account te importeren. De externe wiki heeft de volgende foutmelding gegeven: $1",
 	"mwa-finishcreate": "Het importeren van uw account is geslaagd. U kunt nu een nieuw wachtwoord instellen of \"$1\" kiezen om uw huidige wachtwoord te behouden.",
-	"mwa-unconfiguredtitle": "Uitbreiding is niet geconfigureerd."
+	"mwa-finishimport-nocreate": "Het importeren van uw account is afgerond. Stel nu voor uw veiligheid een nieuw wachtwoord in.",
+	"mwa-unconfiguredtitle": "Uitbreiding is niet geconfigureerd.",
+	"mwa-unconfiguredtext": "De uitbreiding MediaWikiAuth is niet juist ingesteld. Zorg ervoor dat $wgMediaWikiAuthApiUrl in uw LocalSettings.php is ingesteld op de API-URL van de externe wiki.",
+	"action-mwa-createlocalaccount": "lokale accounts aan te maken met dezelfde gebruikersnaam als een niet geïmporteerd extern account",
+	"right-mwa-createlocalaccount": "Lokale accounts aanmaken met dezelfde gebruikersnaam als een niet geïmporteerd extern account"
 }
