@@ -9,6 +9,8 @@
 	"mwa-config-allowpasswordchange": "若為 <code>true</code>，在匯入他們的帳號之後，會提示使用者來選擇更改他們的密碼（或是選擇忽略按鈕來維持相同密碼）。",
 	"mwa-config-apiurl": "針對驗證的遠端 wiki 的 api.php 網址。",
 	"mwa-config-importgroups": "此設置控制哪些本地使用者群組會分配給使用者。若為 <code>true</code>（預設值），提供的群組名稱存在於本地端，則使用者在遠端 wiki 上所擁有的全部群組成員會匯入到本地端 wiki。若為 <code>false</code>，不會有任何群組成員被匯入。若為陣列，僅有匯入設置所列出要複製的群組。在任一情況下都不會匯入隱式群組，且任何群組到期資料皆維持不變。",
+	"mwa-config-importoptions": "此組態會控制哪些使用者的偏好設定不會從遠端 wiki 匯入。它是內部使用者偏好設定選項名稱的陣列，出現在陣列裡可選的通用值（<code>'*'</code>）會將所有內容匯入。若陣列為空，則不會匯入任何選項。如果陣列沒有通用值，僅會匯入指定的選項。",
+	"mwa-config-skipoptions": "此組態會控制哪些使用者的偏好設定不會從遠端 wiki 匯入。它是內部使用者偏好設定選項名稱的陣列。在此列出的偏好設定不會被匯入（即使是列在 <code>$wgMediaWikiAuthImportOptions</code> 中）。這主要用於當您希望匯入某些選項清單「除外」的所有內容時。",
 	"mwa-config-disableaccountcreation": "若為 <code>true</code>，MediaWikiAuth 會假定所有相關使用者已建立在本地端上，但帶有無效的密碼雜湊值。這在您只想匯入在遠端 wiki 上一些所有使用者的某些子集合（例如曾進行過遠端編輯的任何人）時很有用。若為 <code>true</code>，MediaWikiAuth 將會檢測無效的密碼，並嘗試針對帶有使用者指定密碼的遠端 wiki 做驗證。若成功的話，該使用者會被請求更改他們的本地端密碼，以便之後可正常登入。\n\n在此模式運作之下，不會有監視清單、群組匯入、以及編輯重新歸屬。這些設定皆會被忽略。",
 	"mwa-config-importwatchlist": "若為 <code>true</code>，會透過任務佇列來做匯入監視清單。若為 <code>false</code>，則不會匯入。啟用此設定，將會對遠端 API 做額外請求。若遠端伺服器異常緩慢，這些額外請求可能會對使用者匯入處理造成逾時。在這種情況下，您得停用此設定。",
 	"mwa-config-reattributeedits": "若為 <code>true</code>，符合新建立帳號使用者的現有匯入編輯，會透過任務佇列來做重新歸屬，因此會正確顯示在該使用者的貢獻頁面裡。若為 <code>false</code>，則不會做重新歸屬。",
