@@ -1,8 +1,9 @@
 {
 	"@metadata": {
 		"authors": [
-			"Banjo"
+			"Banjo",
+			"Toliño"
 		]
 	},
-	"mwa-unconfiguredtitle": "Extensión non configurada."
+	"mwa-unconfiguredtitle": "A extensión non está configurada."
 }
