@@ -1,12 +1,14 @@
 {
 	"@metadata": {
 		"authors": [
-			"Robby"
+			"Robby",
+			"Volvox"
 		]
 	},
 	"mwa-desc": "Authentifizéiert an importéiert Logins aus enger externer MediaWiki Instanz",
 	"mwa-error-unknown": "Onbekannte Feeler beim Aloggen an d'Remote-Wiki",
 	"mwa-authfail": "D'Aloggen an d'Remote-Wiki fir Äre Benotzerkont z'importéieren konnt net gemaach ginn. Suergt dofir datt Dir dat richtegt Passwuert benotzt.",
 	"mwa-finishcreate": "Äre Benotzerkont gouf mat Succès importéiert. Dir kënnt elo en neit Passwuert astellen oder \"$1\" eraussiche fir Äert aktuellt Passwuert ze behalen.",
+	"mwa-finishimport-nocreate": "Äre Kont gouf erfollegräich importéiert. Leet wgl. fir méi Sécherheet en neit Passwuert fest.",
 	"mwa-unconfiguredtitle": "Erweiderung net konfiguréiert."
 }
