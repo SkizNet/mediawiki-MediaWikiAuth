@@ -5,5 +5,22 @@
 			"Toliño"
 		]
 	},
-	"mwa-unconfiguredtitle": "A extensión non está configurada."
+	"mwa-desc": "Autentica e importa inicios de sesión desde unha instancia externa de MediaWiki",
+	"mwa-config-allowpasswordchange": "Se é <code>true</code>, despois de importar a súa conta, solicitaráselle ao usuario que cambie o seu contrasinal opcionalmente (ou que faga clic no botón «Omitir» para manter o mesmo contrasinal).",
+	"mwa-config-apiurl": "Enderezo URL do ficheiro «api.php» do wiki remoto contra o que autenticarse.",
+	"mwa-config-importgroups": "Esta configuración controla que grupos de usuarios locais se lle asignan ao usuario. Se é <code>true</code> (o valor predeterminado), todas as afiliacións a grupos que o usuario tiña no wiki remoto impórtanse ao wiki local, sempre que existan grupos co mesmo nome localmente. Se é <code>false</code>, non se importan as afiliacións a grupos. Se é unha matriz, a configuración enumera os grupos que se copiarán; só se importan os da lista. En calquera caso, non se poden importar os grupos implícitos e os datos de caducidade dos grupos mantéñense intactos.",
+	"mwa-config-importoptions": "Esta configuración controla que preferencias de usuario se importan desde o wiki remoto. É unha matriz de nomes de opcións internas de preferencias de usuario. Se na matriz hai presente un valor comodín opcional (<code>'*'</code>) ha importarse todo. Se a matriz está baleira, non se importará ningunha opción. Se a matriz non contén ningún comodín, unicamente se importarán as opcións especificadas.",
+	"mwa-config-skipoptions": "Esta configuración controla que preferencias de usuario non se importan desde o wiki remoto. É unha matriz de nomes de opcións internas de preferencias de usuario. As preferencias enumeradas aquí non se importarán, mesmo se están presentes en <code>$wgMediaWikiAuthImportOptions</code>. Isto úsase principalmente cando se quere importar todo ''agás'' unha lista de opcións.",
+	"mwa-config-disableaccountcreation": "Se é <code>true</code>, MediaWikiAuth asume que todos os usuarios relevantes xa foron creados localmente, pero con hashes de contrasinal non válidos. Isto é útil se só queres importar un subconxunto de todos os usuarios do wiki remoto, como calquera que editase remotamente. Se é <code>true</code>, MediaWikiAuth detectará o contrasinal non válido e intentará autenticarse contra o wiki remota co contrasinal proporcionado polo usuario. En caso de éxito, o usuario deberá cambiar o seu contrasinal local para poder iniciar sesión normalmente no futuro.\n\nCando se opera neste modo, a lista de vixilancia, as importacións de grupos e a reatribución de edicións non se realizan. Esas configuracións ignóranse.",
+	"mwa-config-importwatchlist": "Se é <code>true</code>, as listas de vixilancia importaranse a través da cola de traballos. Se é <code>false</code>, as listas de vixilancia non se importarán. A activación disto provocará solicitudes adicionais á API remota. Se o servidor remoto é excepcionalmente lento, estas solicitudes adicionais poden esgotar o tempo de espera do proceso de importación do usuario. Neste caso, convén desactivar esta configuración.",
+	"mwa-config-reattributeedits": "Se é <code>true</code>, as edicións importadas existentes que coincidan co nome de usuario da conta creada recentemente reatribuiranse a través da cola de traballos para que se mostren correctamente na páxina de contribucións dese usuario. Se é <code>false</code>, non se producirá ningunha reatribución.",
+	"mwa-error-unknown": "Produciuse un erro ao iniciar sesión no wiki remoto.",
+	"mwa-authfail": "Non se pode iniciar sesión no wiki remoto para importar a túa conta. Asegúrate de que estás a usar o contrasinal correcto.",
+	"mwa-authfail2": "Non se pode iniciar sesión no wiki remoto para importar a túa conta. Produciuse o seguinte erro no wiki remoto: $1",
+	"mwa-finishcreate": "A túa conta importouse correctamente. Podes definir un contrasinal novo agora ou premer en «$1» para manter o teu contrasinal.",
+	"mwa-finishimport-nocreate": "A túa conta importouse correctamente. Define un contrasinal novo para aumentar a seguranza.",
+	"mwa-unconfiguredtitle": "A extensión non está configurada.",
+	"mwa-unconfiguredtext": "A extensión MediaWikiAuth non está configurada correctamente. Asegúrate de que a opción «$wgMediaWikiAuthApiUrl» estea definida no ficheiro «LocalSettings.php» e apunte ao enderezo URL da API do wiki remoto.",
+	"action-mwa-createlocalaccount": "crear contas locais co mesmo nome de usuario que unha conta externa non importada",
+	"right-mwa-createlocalaccount": "Crear contas locais co mesmo nome de usuario que unha conta externa non importada"
 }
