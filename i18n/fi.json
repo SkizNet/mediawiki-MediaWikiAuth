@@ -10,7 +10,9 @@
 	},
 	"mwa-error-unknown": "Tuntematon virhe kirjautuessa sisään etäwikiin.",
 	"mwa-authfail": "Etäwikiin kirjautuminen käyttäjätunnuksen tuontia varten ei onnistunut. Varmista, että käytät oikeaa salasanaa.",
+	"mwa-authfail2": "Kirjautuminen etäwikiin tunnuksesi tuomiseksi ei onnistu. Etäwikissä oli seuraava virhe: $1",
 	"mwa-finishcreate": "Käyttäjätunnuksesi on tuotu onnistuneesti. Voit asettaa uuden salasanan nyt tai valita ”$1” säilyttääksesi nykyisen salasanasi.",
+	"mwa-finishimport-nocreate": "Tunnuksesi on tuotu onnistuneesti. Aseta uusi salasana paremman turvallisuuden takaamiseksi.",
 	"mwa-unconfiguredtitle": "Laajennuksen asetuksia ei ole tehty.",
 	"mwa-unconfiguredtext": "MediaWikiAuth-laajennusen asetuksia ei ole määritelty oikein. Varmista että $wgMediaWikiAuthApiUrl on asetettu oikein LocalSettings.php-tiedostossa sen wikin rajapinnan URL-osoitteeseen, jossa haluat käyttää sitä.",
 	"right-mwa-createlocalaccount": "Luoda paikallisia käyttäjätunnuksia samalla nimellä kuin tuomaton ulkoinen käyttäjätunnus"
