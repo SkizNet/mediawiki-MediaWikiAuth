@@ -4,6 +4,7 @@
 			"A Retired User",
 			"Diskdance",
 			"Liuxinyu970226",
+			"Peterxy12",
 			"SomeyaMako",
 			"Tranve",
 			"予弦",
@@ -12,6 +13,14 @@
 		]
 	},
 	"mwa-desc": "从外部MediaWiki实例进行身份验证，并导入登录",
+	"mwa-config-allowpasswordchange": "若为<code>true</code>，在导入他们的账号之后，会提示用户来选择更改他们的密码（或是选择忽略按钮来维持相同密码）。",
+	"mwa-config-apiurl": "针对验证的远程wiki的api.php网址。",
+	"mwa-config-importgroups": "此设置控制哪些本地用户组会分配给用户。若为<code>true</code>（默认值），提供的群组名称存在于本地端，则用户在远程wiki上所拥有的全部群组成员会导入到本地端wiki。若为<code>false</code>，不会有任何群组成员被导入。若为阵列，仅有导入设置所列出要复制的群组。在任一情况下都不会导入隐式群组，且任何群组到期数据皆维持不变。",
+	"mwa-config-importoptions": "此配置会控制哪些用户的偏好设置不会从远程wiki 导入。它是内部用偏好设置选项名称的阵列，出现在阵列里可选的通用值（<code>'*'</code>）会将所有内容导入。若阵列为空，则不会导入任何选项。如果阵列没有通用值，仅会导入指定的选项。",
+	"mwa-config-skipoptions": "此组态会控制哪些用户的首选项不会从远程wiki导入。它是内部用户首选项选项名称的阵列。在此列出的首选项不会被导入（即使是列在<code>$wgMediaWikiAuthImportOptions</code>中）。这主要用于当您希望导入某些选项清单“除外”的所有内容时。",
+	"mwa-config-disableaccountcreation": "若为<code>true</code>，MediaWikiAuth 会假定所有相关用户已创建在本地端上，但带有无效的密码哈希值。这在您只想导入在远程 wiki 上一些所有用户的某些子集合（例如曾进行过远程编辑的任何人）时很有用。若为<code>true</code>，MediaWikiAuth将会检测无效的密码，并尝试针对带有用户指定密码的远程wiki做验证。若成功的话，该用户会被请求更改他们的本地端密码，以便之后可正常登入。在此模式运作之下，不会有监视列表、群组导入、以及编辑重新归属。这些设置皆会被忽略。",
+	"mwa-config-importwatchlist": "若为<code>true</code>，会通过任务队列来做导入监视列表。若为<code>false</code>，则不会导入。启用此设置，将会对远程API做额外请求。若远程服务器异常缓慢，这些额外请求可能会对用户导入处理造成逾时。在这种情况下，您得停用此设置。",
+	"mwa-config-reattributeedits": "若为<code>true</code>，符合新创建账号用户的现有导入编辑，会通过任务队列来做重新归属，因此会正确显示在该用户的贡献页面里。若为<code>false</code>，则不会做重新归属。",
 	"mwa-error-unknown": "登录远程wiki时发生未知错误。",
 	"mwa-authfail": "无法登录远程wiki导入您的账户。请确保您在使用正确的密码。",
 	"mwa-authfail2": "无法登陆远程Wiki以导入您的账户，因为远端Wiki遇到了以下错误：$1",
@@ -19,5 +28,6 @@
 	"mwa-finishimport-nocreate": "您的账号已成功导入。请设置新密码确保账号的安全性。",
 	"mwa-unconfiguredtitle": "扩展未配置。",
 	"mwa-unconfiguredtext": "MediaWikiAuth未正确配置。请确保在您的LocalSettings.php中，将$wgMediaWikiAuthApiUrl设置为远程wiki的API URL。",
+	"action-mwa-createlocalaccount": "创建与未导入外部账号相同用户名的本地账号",
 	"right-mwa-createlocalaccount": "使用与未导入外部账号相同的用户名创建本地账号"
 }
