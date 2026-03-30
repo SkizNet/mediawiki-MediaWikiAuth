@@ -1,6 +1,7 @@
 {
 	"@metadata": {
 		"authors": [
+			"Aca",
 			"Winston Sung"
 		]
 	},
@@ -9,7 +10,7 @@
 	"mwa-config-apiurl": "URL do api.php udaljenog wikija za autentifikaciju.",
 	"mwa-config-importgroups": "Ove postavke kontroliraju kojim su grupama pripada korisnik. Ako pstavljeno je na <code>true</code> (podrazumjevano), sva članstva u grupama korisnika na udaljenom wikiju uvoze se na lokalni wiki, pod uvjetom da iste postoje i tamo. Ako postavljeno je na <code>false</code>, članstvo u grupama se ne uvozi. Ako je niz, postavke navode koje grupe treba ubaciti i uvoze se samo oni navedeni. U oba slučaja, implicitne grupe se ne mogu uvesti, a svi podaci o isteku grupe ostaju netaknuti.",
 	"mwa-unconfiguredtitle": "Dodatak nije konfigurisan.",
-	"mwa-unconfiguredtext": "Proširenje MediaWiki nije ispravno konfigurisano. Provjerite je li $wgMediaWikiAuthApiUrl postavljen u vašem LocalSettings.php na izvršnički URL udaljenog wikija.",
+	"mwa-unconfiguredtext": "Dodatak MediaWikiAuth nije ispravno konfiguriran. Provjerite je li $wgMediaWikiAuthApiUrl postavljen u vašem LocalSettings.php na API URL udaljenog wikija.",
 	"action-mwa-createlocalaccount": "pravljenje lokalnih računa s istim korisničkim imenom kao neuvezeni vanjski račun",
 	"right-mwa-createlocalaccount": "Napravi lokalne račune s istim korisničkim imenom kao neuvezeni vanjski račun"
 }
