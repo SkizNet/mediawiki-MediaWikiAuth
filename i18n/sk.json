@@ -1,13 +1,27 @@
 {
 	"@metadata": {
 		"authors": [
-			"Pmikolas44"
+			"Pmikolas44",
+			"Wizzard"
 		]
 	},
+	"mwa-extensionname": "MediaWikiAuth",
 	"mwa-desc": "Overuje a importuje prihlasovacie údaje z externej inštancie MediaWiki",
+	"mwa-config-allowpasswordchange": "Ak je <code>true</code>, po importe účtu sa používateľovi ponúkne zmena hesla (alebo môže tlačidlom Preskočiť ponechať rovnaké heslo).",
+	"mwa-config-apiurl": "URL súboru api.php vzdialenej wiki, voči ktorej sa overuje.",
+	"mwa-config-importgroups": "Toto nastavenie určuje, ktoré miestne skupiny používateľov sa používateľovi priradia. Ak je <code>true</code> (predvolené), všetky členstvá v skupinách, ktoré mal používateľ na vzdialenej wiki, sa importujú na miestnu wiki, ak tam existujú skupiny s rovnakým názvom. Ak je <code>false</code>, neimportujú sa žiadne členstvá. Ak je to pole, nastavenie uvádza, ktoré skupiny sa majú skopírovať; importujú sa iba uvedené. V každom prípade nemožno importovať implicitné skupiny a údaje o vypršaní členstva v skupinách zostanú zachované.",
+	"mwa-config-importoptions": "Toto nastavenie určuje, ktoré používateľské nastavenia sa importujú zo vzdialenej wiki. Je to pole interných názvov nastavení. Voliteľný zástupný znak (<code>'*'</code>) v poli importuje všetko. Ak je pole prázdne, neimportujú sa žiadne nastavenia. Ak pole neobsahuje zástupný znak, importujú sa iba uvedené nastavenia.",
+	"mwa-config-skipoptions": "Toto nastavenie určuje, ktoré používateľské nastavenia sa zo vzdialenej wiki neimportujú. Je to pole interných názvov nastavení. Tu uvedené nastavenia sa neimportujú, ani keď sú uvedené v <code>$wgMediaWikiAuthImportOptions</code>. Používa sa hlavne vtedy, keď chcete importovať všetko ''okrem'' niekoľkých nastavení.",
+	"mwa-config-disableaccountcreation": "Ak je <code>true</code>, MediaWikiAuth predpokladá, že všetci relevantní používatelia už boli miestne vytvorení, ale s neplatnými hašmi hesiel. Hodí sa to, ak chcete importovať iba časť používateľov vzdialenej wiki, napríklad tých, ktorí tam niečo upravovali. Ak je <code>true</code>, MediaWikiAuth zistí neplatné heslo a pokúsi sa overiť voči vzdialenej wiki zadaným heslom používateľa. Ak sa to podarí, používateľ si bude musieť zmeniť miestne heslo, aby sa v budúcnosti mohol prihlasovať normálne.\\n\\nV tomto režime sa neimportujú zoznamy sledovaných, skupiny ani sa nepreraďujú úpravy. Tieto nastavenia sa ignorujú.",
+	"mwa-config-importwatchlist": "Ak je <code>true</code>, zoznamy sledovaných sa importujú cez frontu úloh. Ak je <code>false</code>, zoznamy sledovaných sa neimportujú. Zapnutie spôsobí ďalšie požiadavky na vzdialené API. Ak je vzdialený server mimoriadne pomalý, môžu tieto požiadavky spôsobiť vypršanie importu používateľa. V takom prípade toto nastavenie vypnite.",
+	"mwa-config-reattributeedits": "Ak je <code>true</code>, existujúce importované úpravy, ktoré zodpovedajú používateľskému menu novovytvoreného účtu, sa cez frontu úloh preradia, aby sa správne zobrazovali na stránke Príspevky tohto používateľa. Ak je <code>false</code>, nič sa nepreraďuje.",
 	"mwa-error-unknown": "Neznáma chyba pri prihlasovaní do vzdialenej wiki.",
 	"mwa-authfail": "Nie je možné sa prihlásiť do vzdialenej wiki a importovať svoj účet. Uistite sa, že používate správne heslo.",
+	"mwa-authfail2": "Nepodarilo sa prihlásiť na vzdialenú wiki a importovať váš účet. Vzdialená wiki vrátila túto chybu: $1",
 	"mwa-finishcreate": "Váš účet bol úspešne importovaný. Teraz môžete nastaviť nové heslo alebo zvoliť \"$1\" aby ste si udržali svoje aktuálne heslo.",
+	"mwa-finishimport-nocreate": "Váš účet bol úspešne importovaný. Pre lepšiu bezpečnosť si nastavte nové heslo.",
 	"mwa-unconfiguredtitle": "Rozšírenie nie je nakonfigurované.",
-	"mwa-unconfiguredtext": "Rozšírenie aplikácie MediaWikiAuth nie je správne nakonfigurované. Uistite sa, že $wgMediaWikiAuthApiUrl je nastavené vo vašich LocalSettings.php na API URL vzdialenej wiki."
+	"mwa-unconfiguredtext": "Rozšírenie aplikácie MediaWikiAuth nie je správne nakonfigurované. Uistite sa, že $wgMediaWikiAuthApiUrl je nastavené vo vašich LocalSettings.php na API URL vzdialenej wiki.",
+	"action-mwa-createlocalaccount": "vytvárať miestne účty s rovnakým používateľským menom ako neimportovaný externý účet",
+	"right-mwa-createlocalaccount": "Vytváranie miestnych účtov s rovnakým používateľským menom ako neimportovaný externý účet"
 }
